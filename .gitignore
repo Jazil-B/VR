@@ -1,0 +1,20 @@
+.gradle
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
+/captures
+
+# Tmp
+*~
+
+# C++
+*.so
+*.o
+*.d
+
+# Android
+*.iml
+.idea
+.gradle

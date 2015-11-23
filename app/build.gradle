@@ -1,0 +1,81 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion = "android-23"
+    buildToolsVersion = "23.0.2"
+
+    defaultConfig.with {
+        applicationId    = "com.android.Stereo4VR"
+        //minSdkVersion.apiLevel    = 15
+        //targetSdkVersion.apiLevel = 23
+        minSdkVersion 16
+        targetSdkVersion 23
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    sourceSets.main {
+        jniLibs.srcDir 'src/main/libs' // use the jni .so compiled from the manual ndk-build command
+        jni.srcDirs = [] //disable automatic ndk-build call
+    }
+
+    task ndkBuild(type: Exec) {
+        workingDir file('src/main')
+        commandLine getNdkBuildCmd()
+    }
+
+    tasks.withType(JavaCompile) {
+        compileTask -> compileTask.dependsOn ndkBuild
+    }
+
+    task cleanNative(type: Exec) {
+        workingDir file('src/main')
+        commandLine getNdkBuildCmd(), 'clean'
+    }
+
+    clean.dependsOn cleanNative
+}
+
+/*android.productFlavors {
+    create ("arm7") {
+        ndk.abiFilters += "armeabi-v7a"
+    }
+    create ("arm8") {
+        ndk.abiFilters += "arm64-v8a"
+    }
+    create ("x86-32") {
+        ndk.abiFilters += "x86"
+    }
+    // for detailed abiFilter descriptions, refer to "Supported ABIs" @
+    // https://developer.android.com/ndk/guides/abis.html#sa
+
+    // build one including all cpu architectures
+    create("all")
+}*/
+
+def getNdkDir() {
+    if (System.env.ANDROID_NDK_ROOT != null)
+        return System.env.ANDROID_NDK_ROOT
+
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    def ndkdir = properties.getProperty('ndk.dir', null)
+    if (ndkdir == null)
+        throw new GradleException("NDK location not found. Define location with ndk.dir in the local.properties file or with an ANDROID_NDK_ROOT environment variable.")
+
+    return ndkdir
+}
+
+def getNdkBuildCmd() {
+    def ndkbuild = getNdkDir() + "/ndk-build"
+    if (Os.isFamily(Os.FAMILY_WINDOWS))
+        ndkbuild += ".cmd"
+
+    return ndkbuild
+}
