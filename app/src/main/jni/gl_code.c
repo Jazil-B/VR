@@ -9,6 +9,10 @@
 
 #include "AssetTool.h"
 
+#define ALOGD(...) __android_log_print(ANDROID_LOG_DEBUG, __FILE__, __VA_ARGS__)
+#define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, __FILE__, __VA_ARGS__)
+#define ALOGI(...) __android_log_print(ANDROID_LOG_INFO , __FILE__, __VA_ARGS__)
+
 static GLuint _program;
 static GLuint _vPositionHandle, _vTextureHandle, _vNormalHandle;
 static GLuint _myTextureHandle;
@@ -16,7 +20,19 @@ static GLuint _pause = 0;
 static GLfloat _width = 1.0f, _height = 1.0f;
 static GLfloat _ratio_x = 1.0f, _ratio_y = 1.0f;
 
+typedef struct
+{
+    GLfloat *gTriangleVertices;
+    GLfloat *gTriangleTextures;
+    GLfloat *gTriangleNormales;
+
+    GLsizei verticesNum;
+    GLsizei texturesNum;
+    GLsizei normalesNum;
+} Model;
+
 static GLint _solTexture;
+static Model *_solModel;
 
 // Par exemple si tu veux charger sol.png faudrat faire loadTexture("sol.png")
 static GLint loadTexture(const GLchar *filename) {
@@ -103,20 +119,55 @@ static int init(const char * vs, const char * fs) {
     return 1;
 }
 
+static Model *createPlan(GLfloat dim, GLfloat textureRepeat)
+{
+    Model *newModel = malloc(sizeof *newModel);
+
+    GLfloat gTriangleVertices[] = { -dim, dim, 0.0f, dim, dim, 0.0f, -dim, -dim, 0.0f, dim, -dim, 0.0f };
+    GLfloat gTriangleTextures[] = { 0.0f, 0.0f, 0.0f, textureRepeat, textureRepeat, 0.0f, textureRepeat, textureRepeat };
+    GLfloat gTriangleNormales[] = { 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f };
+
+    newModel->gTriangleVertices = malloc(sizeof gTriangleVertices);
+    newModel->gTriangleTextures = malloc(sizeof gTriangleTextures);
+    newModel->gTriangleNormales = malloc(sizeof gTriangleNormales);
+
+    newModel->verticesNum = sizeof gTriangleVertices;
+    newModel->texturesNum = sizeof gTriangleTextures;
+    newModel->normalesNum = sizeof gTriangleNormales;
+
+    memcpy(newModel->gTriangleVertices, gTriangleVertices, newModel->verticesNum);
+    memcpy(newModel->gTriangleTextures, gTriangleTextures, newModel->texturesNum);
+    memcpy(newModel->gTriangleNormales, gTriangleNormales, newModel->normalesNum);
+
+    return newModel;
+}
+
+static void deletePlan(Model *aModel)
+{
+    free(aModel->gTriangleVertices);
+    free(aModel->gTriangleTextures);
+    free(aModel->gTriangleNormales);
+
+    free(aModel);
+}
+
+static void displayModel(Model *amodel, GLuint texture,
+                        GLfloat posx, GLfloat posy, GLfloat posz)
+{
+}
+
 static void scene(int duplicate) {
     GLfloat mat[16], lum_pos[3] = {0.0f, 0.0f, -20.0f};
     static int r1 = 0, r2 = 0, r3 = 0;
-    const GLfloat gTriangleVertices[] = { -6.5f, 6.5f, 6.5f, 6.5f, -6.5f, -6.5f, 6.5f, -6.5f };
-    const GLfloat gTriangleTextures[] = { 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f };
-    const GLfloat gTriangleNormales[] = { 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f };
 
-    glVertexAttribPointer(_vPositionHandle, 2, GL_FLOAT, GL_FALSE, 0, gTriangleVertices);
+    glVertexAttribPointer(_vPositionHandle, 3, GL_FLOAT, GL_FALSE, 0, _solModel->gTriangleVertices);
     glEnableVertexAttribArray(_vPositionHandle);
-    glVertexAttribPointer(_vTextureHandle, 2, GL_FLOAT, GL_FALSE, 0, gTriangleTextures);
+    glVertexAttribPointer(_vTextureHandle, 2, GL_FLOAT, GL_FALSE, 0, _solModel->gTriangleTextures);
     glEnableVertexAttribArray(_vTextureHandle);
-    glVertexAttribPointer(_vNormalHandle, 3, GL_FLOAT, GL_FALSE, 0, gTriangleNormales);
+    glVertexAttribPointer(_vNormalHandle, 3, GL_FLOAT, GL_FALSE, 0, _solModel->gTriangleNormales);
     glEnableVertexAttribArray(_vNormalHandle);
 
+    glUniform1i(_myTextureHandle, 0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _solTexture);
 
@@ -124,9 +175,9 @@ static void scene(int duplicate) {
     gl4duBindMatrix("mmat");
     gl4duLoadIdentityf();
     gl4duPushMatrix();
-    gl4duTranslatef(0.0f, 0.0f, -30.0f);
-    gl4duRotatef(r1, 1, 0, 0);
-    gl4duRotatef(r2, 0, 1, 0);
+    gl4duTranslatef(0.0f, -5.0f, 0.0f);
+    gl4duRotatef(90, 1, 0, 0);
+    //gl4duRotatef(r2, 0, 1, 0);
     memcpy(mat, gl4duGetMatrixData(), sizeof mat);
     MMAT4INVERSE(mat);
     MMAT4TRANSPOSE(mat);
@@ -203,4 +254,5 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_initAssets(JNIEnv * en
     jniAssetManager = assetManager;
 
     _solTexture = loadTexture("sol.jpg");
+    _solModel = createPlan(500.0f, 10.0f);
 }
