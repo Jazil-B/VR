@@ -6,6 +6,7 @@
 #include "externals/include/SDL2/SDL_image.h"
 
 #include "GL4D/gl4droid.h"
+#include "GL4D/gl4dm.h"
 
 #include "AssetTool.h"
 
@@ -29,7 +30,17 @@ typedef struct
     GLsizei verticesNum;
     GLsizei texturesNum;
     GLsizei normalesNum;
+
+    GL4DMVector position;
+    GL4DMVector rotation;
+    GL4DMVector scale;
+
+    GLenum drawType;
+    GLsizei size;
 } Model;
+
+static GLint _skyboxTexture;
+static Model *_skyboxModel;
 
 static GLint _solTexture;
 static Model *_solModel;
@@ -119,11 +130,178 @@ static int init(const char * vs, const char * fs) {
     return 1;
 }
 
-static Model *createPlan(GLfloat dim, GLfloat textureRepeat)
+static Model *createCube(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textureRepeat)
 {
     Model *newModel = malloc(sizeof *newModel);
 
-    GLfloat gTriangleVertices[] = { -dim, dim, 0.0f, dim, dim, 0.0f, -dim, -dim, 0.0f, dim, -dim, 0.0f };
+    GLfloat gTriangleVertices[] =
+            {
+                    -dimx, -dimy, dimz,
+                    dimx, -dimy, dimz,
+                    -dimx, dimy, dimz,
+                    -dimx, dimy, dimz,
+                    dimx, -dimy, dimz,
+                    dimx, dimy, dimz,
+
+                    dimx, -dimy, dimz,
+                    dimx, -dimy, -dimz,
+                    dimx, dimy, dimz,
+                    dimx, dimy, dimz,
+                    dimx, -dimy, -dimz,
+                    dimx, dimy, -dimz,
+
+                    -dimx, -dimy, -dimz,
+                    dimx, -dimy, -dimz,
+                    -dimx, dimy, -dimz,
+                    -dimx, dimy, -dimz,
+                    dimx, -dimy, -dimz,
+                    dimx, dimy, -dimz,
+
+                    -dimx, -dimy, dimz,
+                    -dimx, -dimy, -dimz,
+                    -dimx, dimy, dimz,
+                    -dimx, dimy, dimz,
+                    -dimx, -dimy, -dimz,
+                    -dimx, dimy, -dimz,
+
+                    -dimx, -dimy, dimz,
+                    dimx, -dimy, dimz,
+                    -dimx, -dimy, -dimz,
+                    -dimx, -dimy, -dimz,
+                    dimx, -dimy, dimz,
+                    dimx, -dimy, -dimz,
+
+                    -dimx, dimy, dimz,
+                    dimx, dimy, dimz,
+                    -dimx, dimy, -dimz,
+                    -dimx, dimy, -dimz,
+                    dimx, dimy, dimz,
+                    dimx, dimy, -dimz,
+            };
+    GLfloat gTriangleTextures[] =
+            {
+                    1.0f, 0.25f,
+                    0.75f, 0.25f,
+                    1.0f, 0.75f,
+                    1.0f, 0.75f,
+                    0.75f, 0.25f,
+                    0.75f, 0.75f,
+
+                    0.75f, 0.25f,
+                    0.50f, 0.25f,
+                    0.75f, 0.75f,
+                    0.75f, 0.75f,
+                    0.50f, 0.25f,
+                    0.50f, 0.75f,
+
+                    0.25f, 0.25f,
+                    0.50f, 0.25f,
+                    0.25f, 0.75f,
+                    0.25f, 0.75f,
+                    0.50f, 0.25f,
+                    0.50f, 0.75f,
+
+                    0.0f, 0.25f,
+                    0.25f, 0.25f,
+                    0.0f, 0.75f,
+                    0.0f, 0.75f,
+                    0.25f, 0.25f,
+                    0.25f, 0.75f,
+
+                    0.25f, 0.0f,
+                    0.50f, 0.0f,
+                    0.25f, 0.25f,
+                    0.25f, 0.25f,
+                    0.50f, 0.0f,
+                    0.50f, 0.25f,
+
+                    0.25f, 1.0f,
+                    0.50f, 1.0f,
+                    0.25f, 0.75f,
+                    0.25f, 0.75f,
+                    0.50f, 1.0f,
+                    0.50f, 0.75f,
+            };
+    GLfloat gTriangleNormales[] =
+            {
+                    0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f,
+
+                    1.0f, 0.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+
+                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,
+
+                    -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,
+
+                    0.0f, -1.0f, 0.0f,
+                    0.0f, -1.0f, 0.0f,
+                    0.0f, -1.0f, 0.0f,
+                    0.0f, -1.0f, 0.0f,
+                    0.0f, -1.0f, 0.0f,
+                    0.0f, -1.0f, 0.0f,
+
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+            };
+
+    newModel->gTriangleVertices = malloc(sizeof gTriangleVertices);
+    newModel->gTriangleTextures = malloc(sizeof gTriangleTextures);
+    newModel->gTriangleNormales = malloc(sizeof gTriangleNormales);
+
+    newModel->verticesNum = sizeof gTriangleVertices;
+    newModel->texturesNum = sizeof gTriangleTextures;
+    newModel->normalesNum = sizeof gTriangleNormales;
+
+    memcpy(newModel->gTriangleVertices, gTriangleVertices, newModel->verticesNum);
+    memcpy(newModel->gTriangleTextures, gTriangleTextures, newModel->texturesNum);
+    memcpy(newModel->gTriangleNormales, gTriangleNormales, newModel->normalesNum);
+
+    newModel->position.x = 0;
+    newModel->position.y = 0;
+    newModel->position.z = 0;
+
+    newModel->rotation.x = 0;
+    newModel->rotation.y = 0;
+    newModel->rotation.z = 0;
+
+    newModel->scale.x = 1;
+    newModel->scale.y = 1;
+    newModel->scale.z = 1;
+
+    newModel->drawType = GL_TRIANGLES;
+    newModel->size = 36;
+
+    return newModel;
+}
+
+static Model *createPlan(GLfloat dimx, GLfloat dimy, GLfloat textureRepeat)
+{
+    Model *newModel = malloc(sizeof *newModel);
+
+    GLfloat gTriangleVertices[] = { -dimx, dimy, 0.0f, dimx, dimy, 0.0f, -dimx, -dimy, 0.0f, dimx, -dimy, 0.0f };
     GLfloat gTriangleTextures[] = { 0.0f, 0.0f, 0.0f, textureRepeat, textureRepeat, 0.0f, textureRepeat, textureRepeat };
     GLfloat gTriangleNormales[] = { 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f };
 
@@ -139,10 +317,25 @@ static Model *createPlan(GLfloat dim, GLfloat textureRepeat)
     memcpy(newModel->gTriangleTextures, gTriangleTextures, newModel->texturesNum);
     memcpy(newModel->gTriangleNormales, gTriangleNormales, newModel->normalesNum);
 
+    newModel->position.x = 0;
+    newModel->position.y = 0;
+    newModel->position.z = 0;
+
+    newModel->rotation.x = 0;
+    newModel->rotation.y = 0;
+    newModel->rotation.z = 0;
+
+    newModel->scale.x = 1;
+    newModel->scale.y = 1;
+    newModel->scale.z = 1;
+
+    newModel->drawType = GL_TRIANGLE_STRIP;
+    newModel->size = 4;
+
     return newModel;
 }
 
-static void deletePlan(Model *aModel)
+static void deleteModel(Model *aModel)
 {
     free(aModel->gTriangleVertices);
     free(aModel->gTriangleTextures);
@@ -151,42 +344,54 @@ static void deletePlan(Model *aModel)
     free(aModel);
 }
 
-static void displayModel(Model *amodel, GLuint texture,
-                        GLfloat posx, GLfloat posy, GLfloat posz)
+static void displayModel(Model *amodel, GLuint texture)
 {
-}
+    GLfloat mat[16];
 
-static void scene(int duplicate) {
-    GLfloat mat[16], lum_pos[3] = {0.0f, 0.0f, -20.0f};
-    static int r1 = 0, r2 = 0, r3 = 0;
-
-    glVertexAttribPointer(_vPositionHandle, 3, GL_FLOAT, GL_FALSE, 0, _solModel->gTriangleVertices);
+    glVertexAttribPointer(_vPositionHandle, 3, GL_FLOAT, GL_FALSE, 0, amodel->gTriangleVertices);
     glEnableVertexAttribArray(_vPositionHandle);
-    glVertexAttribPointer(_vTextureHandle, 2, GL_FLOAT, GL_FALSE, 0, _solModel->gTriangleTextures);
+    glVertexAttribPointer(_vTextureHandle, 2, GL_FLOAT, GL_FALSE, 0, amodel->gTriangleTextures);
     glEnableVertexAttribArray(_vTextureHandle);
-    glVertexAttribPointer(_vNormalHandle, 3, GL_FLOAT, GL_FALSE, 0, _solModel->gTriangleNormales);
+    glVertexAttribPointer(_vNormalHandle, 3, GL_FLOAT, GL_FALSE, 0, amodel->gTriangleNormales);
     glEnableVertexAttribArray(_vNormalHandle);
 
     glUniform1i(_myTextureHandle, 0);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _solTexture);
+    glBindTexture(GL_TEXTURE_2D, texture);
 
-    /* Matrice du Model */
     gl4duBindMatrix("mmat");
     gl4duLoadIdentityf();
     gl4duPushMatrix();
-    gl4duTranslatef(0.0f, -5.0f, 0.0f);
-    gl4duRotatef(90, 1, 0, 0);
-    //gl4duRotatef(r2, 0, 1, 0);
+    gl4duTranslatef(amodel->position.x, amodel->position.y, amodel->position.z);
+    gl4duRotatef(amodel->rotation.x, 1, 0, 0);
+    gl4duRotatef(amodel->rotation.y, 0, 1, 0);
+    gl4duRotatef(amodel->rotation.z, 0, 0, 1);
+    gl4duScalef(amodel->scale.x, amodel->scale.y, amodel->scale.z);
+
     memcpy(mat, gl4duGetMatrixData(), sizeof mat);
     MMAT4INVERSE(mat);
     MMAT4TRANSPOSE(mat);
-    lum_pos[0] = 10.0f * sin(M_PI * r3 / 180.0f);
     glUniformMatrix4fv(glGetUniformLocation(_program, "tinv_mmat"), 1, GL_FALSE, mat);
-    glUniform3fv(glGetUniformLocation(_program, "lum_pos"), 1, lum_pos);
+
     gl4duSendMatrices();
     gl4duPopMatrix();
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glDrawArrays(amodel->drawType, 0, amodel->size);
+}
+
+static void scene(int duplicate) {
+    GLfloat lum_pos[3] = {0.0f, 0.0f, -20.0f};
+    static int r1 = 0, r2 = 0, r3 = 0;
+
+    /* Matrice du Model */
+    lum_pos[0] = 10.0f * sin(M_PI * r3 / 180.0f);
+    glUniform3fv(glGetUniformLocation(_program, "lum_pos"), 1, lum_pos);
+
+    _skyboxModel->rotation.y = r1;
+
+    displayModel(_skyboxModel, _skyboxTexture);
+    displayModel(_solModel, _solTexture);
+
     if(!_pause && !duplicate) {
         r1 += 1;
         r2 += 2;
@@ -253,6 +458,14 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_initAssets(JNIEnv * en
     jniEnv = env;
     jniAssetManager = assetManager;
 
-    _solTexture = loadTexture("sol.jpg");
-    _solModel = createPlan(500.0f, 10.0f);
+    _skyboxTexture     = loadTexture("skybox.png");
+    _skyboxModel       = createCube(50.0f, 50.0f, 50.0f, 1.0f);
+
+    _solTexture        = loadTexture("sol.jpg");
+    _solModel          = createPlan(500.0f, 500.0f, 50.0f);
+
+    _skyboxModel->rotation.x = 180;
+
+    _solModel->position.y    = -5;
+    _solModel->rotation.x    = -90;
 }
