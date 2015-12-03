@@ -45,6 +45,9 @@ static Model *_skyboxModel;
 static GLint _solTexture;
 static Model *_solModel;
 
+static GLint _arbreTexture;
+static Model *_arbreModel;
+
 // Par exemple si tu veux charger sol.png faudrat faire loadTexture("sol.png")
 static GLint loadTexture(const GLchar *filename) {
     GLint idTexture = 0;
@@ -130,7 +133,7 @@ static int init(const char * vs, const char * fs) {
     return 1;
 }
 
-static Model *createCube(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textureRepeat)
+static Model *createSkybox(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textureRepeat)
 {
     Model *newModel = malloc(sizeof *newModel);
 
@@ -221,6 +224,173 @@ static Model *createCube(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textu
                     0.25f, 0.75f,
                     0.50f, 1.0f,
                     0.50f, 0.75f,
+            };
+    GLfloat gTriangleNormales[] =
+            {
+                    0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f,
+
+                    1.0f, 0.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+
+                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,
+
+                    -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,
+
+                    0.0f, -1.0f, 0.0f,
+                    0.0f, -1.0f, 0.0f,
+                    0.0f, -1.0f, 0.0f,
+                    0.0f, -1.0f, 0.0f,
+                    0.0f, -1.0f, 0.0f,
+                    0.0f, -1.0f, 0.0f,
+
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+            };
+
+    newModel->gTriangleVertices = malloc(sizeof gTriangleVertices);
+    newModel->gTriangleTextures = malloc(sizeof gTriangleTextures);
+    newModel->gTriangleNormales = malloc(sizeof gTriangleNormales);
+
+    newModel->verticesNum = sizeof gTriangleVertices;
+    newModel->texturesNum = sizeof gTriangleTextures;
+    newModel->normalesNum = sizeof gTriangleNormales;
+
+    memcpy(newModel->gTriangleVertices, gTriangleVertices, newModel->verticesNum);
+    memcpy(newModel->gTriangleTextures, gTriangleTextures, newModel->texturesNum);
+    memcpy(newModel->gTriangleNormales, gTriangleNormales, newModel->normalesNum);
+
+    newModel->position.x = 0;
+    newModel->position.y = 0;
+    newModel->position.z = 0;
+
+    newModel->rotation.x = 0;
+    newModel->rotation.y = 0;
+    newModel->rotation.z = 0;
+
+    newModel->scale.x = 1;
+    newModel->scale.y = 1;
+    newModel->scale.z = 1;
+
+    newModel->drawType = GL_TRIANGLES;
+    newModel->size = 36;
+
+    return newModel;
+}
+
+static Model *createCube(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textureRepeat)
+{
+    Model *newModel = malloc(sizeof *newModel);
+
+    GLfloat gTriangleVertices[] =
+            {
+                    -dimx, -dimy, dimz,
+                    dimx, -dimy, dimz,
+                    -dimx, dimy, dimz,
+                    -dimx, dimy, dimz,
+                    dimx, -dimy, dimz,
+                    dimx, dimy, dimz,
+
+                    dimx, -dimy, dimz,
+                    dimx, -dimy, -dimz,
+                    dimx, dimy, dimz,
+                    dimx, dimy, dimz,
+                    dimx, -dimy, -dimz,
+                    dimx, dimy, -dimz,
+
+                    -dimx, -dimy, -dimz,
+                    dimx, -dimy, -dimz,
+                    -dimx, dimy, -dimz,
+                    -dimx, dimy, -dimz,
+                    dimx, -dimy, -dimz,
+                    dimx, dimy, -dimz,
+
+                    -dimx, -dimy, dimz,
+                    -dimx, -dimy, -dimz,
+                    -dimx, dimy, dimz,
+                    -dimx, dimy, dimz,
+                    -dimx, -dimy, -dimz,
+                    -dimx, dimy, -dimz,
+
+                    -dimx, -dimy, dimz,
+                    dimx, -dimy, dimz,
+                    -dimx, -dimy, -dimz,
+                    -dimx, -dimy, -dimz,
+                    dimx, -dimy, dimz,
+                    dimx, -dimy, -dimz,
+
+                    -dimx, dimy, dimz,
+                    dimx, dimy, dimz,
+                    -dimx, dimy, -dimz,
+                    -dimx, dimy, -dimz,
+                    dimx, dimy, dimz,
+                    dimx, dimy, -dimz,
+            };
+    GLfloat gTriangleTextures[] =
+            {
+                    0.0, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
+                    1.0f, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 1.0f,
+
+                    0.0, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
+                    1.0f, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 1.0f,
+
+                    0.0, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
+                    1.0f, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 1.0f,
+
+                    0.0, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
+                    1.0f, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 1.0f,
+
+                    0.0, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
+                    1.0f, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 1.0f,
+
+                    0.0, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
+                    1.0f, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 1.0f,
             };
     GLfloat gTriangleNormales[] =
             {
@@ -391,6 +561,7 @@ static void scene(int duplicate) {
 
     displayModel(_skyboxModel, _skyboxTexture);
     displayModel(_solModel, _solTexture);
+    displayModel(_arbreModel, _arbreTexture);
 
     if(!_pause && !duplicate) {
         r1 += 1;
@@ -459,13 +630,20 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_initAssets(JNIEnv * en
     jniAssetManager = assetManager;
 
     _skyboxTexture     = loadTexture("skybox.png");
-    _skyboxModel       = createCube(50.0f, 50.0f, 50.0f, 1.0f);
+    _skyboxModel       = createSkybox(50.0f, 50.0f, 50.0f, 1.0f);
 
     _solTexture        = loadTexture("sol.jpg");
     _solModel          = createPlan(500.0f, 500.0f, 50.0f);
+
+    _arbreTexture      = loadTexture("arbre.png");
+    _arbreModel        = createCube( 10.f, 5.0f, 0.1f, 1.0f);
 
     _skyboxModel->rotation.x = 180;
 
     _solModel->position.y    = -5;
     _solModel->rotation.x    = -90;
+
+
+    _arbreModel->position.z  = -20;
+    _arbreModel->rotation.z  = -90;
 }
