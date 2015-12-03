@@ -351,46 +351,48 @@ static Model *createCube(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textu
     GLfloat gTriangleTextures[] =
             {
                     0.0, 0.0f,
-                    0.0f, 1.0f,
-                    1.0f, 0.0f,
                     1.0f, 0.0f,
                     0.0f, 1.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
                     1.0f, 1.0f,
 
                     0.0, 0.0f,
-                    0.0f, 1.0f,
-                    1.0f, 0.0f,
                     1.0f, 0.0f,
                     0.0f, 1.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
                     1.0f, 1.0f,
 
                     0.0, 0.0f,
-                    0.0f, 1.0f,
-                    1.0f, 0.0f,
                     1.0f, 0.0f,
                     0.0f, 1.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
                     1.0f, 1.0f,
 
                     0.0, 0.0f,
-                    0.0f, 1.0f,
-                    1.0f, 0.0f,
                     1.0f, 0.0f,
                     0.0f, 1.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
                     1.0f, 1.0f,
 
                     0.0, 0.0f,
-                    0.0f, 1.0f,
-                    1.0f, 0.0f,
                     1.0f, 0.0f,
                     0.0f, 1.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
                     1.0f, 1.0f,
 
                     0.0, 0.0f,
-                    0.0f, 1.0f,
-                    1.0f, 0.0f,
                     1.0f, 0.0f,
                     0.0f, 1.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
                     1.0f, 1.0f,
+
+
             };
     GLfloat gTriangleNormales[] =
             {
@@ -637,7 +639,7 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_initAssets(JNIEnv * en
     _solModel          = createPlan(500.0f, 500.0f, 50.0f);
 
     _arbreTexture      = loadTexture("arbre.png");
-    _arbreModel        = createCube( 3.0f, 1.0f, 1.0f, 1.0f);
+    _arbreModel        = createCube( 1.0f, 3.0f, 1.0f, 1.0f);
 
     _skyboxModel->rotation.x = 180;
 
@@ -646,5 +648,5 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_initAssets(JNIEnv * en
 
 
     _arbreModel->position.z  = -20;
-    _arbreModel->rotation.z  = -90;
+    _arbreModel->rotation.x  = 180;
 }
