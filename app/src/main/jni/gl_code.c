@@ -558,6 +558,7 @@ static void scene(int duplicate) {
     glUniform3fv(glGetUniformLocation(_program, "lum_pos"), 1, lum_pos);
 
     _skyboxModel->rotation.y = r1;
+    _arbreModel->rotation.y = r1;
 
     displayModel(_skyboxModel, _skyboxTexture);
     displayModel(_solModel, _solTexture);
@@ -598,7 +599,7 @@ static void stereo(GLfloat w, GLfloat h, GLfloat dw, GLfloat dh) {
 
 static void draw(void) {
     glUseProgram(_program);
-    glClear(GL_COLOR_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT |  GL_DEPTH_BUFFER_BIT);
     if(_width > _height)
         stereo(_width / 2.0f, _height, _width / 2.0f, 0.0f);
     else
@@ -636,7 +637,7 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_initAssets(JNIEnv * en
     _solModel          = createPlan(500.0f, 500.0f, 50.0f);
 
     _arbreTexture      = loadTexture("arbre.png");
-    _arbreModel        = createCube( 10.f, 5.0f, 0.1f, 1.0f);
+    _arbreModel        = createCube( 3.0f, 1.0f, 1.0f, 1.0f);
 
     _skyboxModel->rotation.x = 180;
 
