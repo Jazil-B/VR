@@ -130,6 +130,9 @@ static int init(const char * vs, const char * fs) {
     _vNormalHandle = glGetAttribLocation(_program, "vNormal");
     _myTextureHandle = glGetAttribLocation(_program, "myTexture");
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     gl4duGenMatrix(GL_FLOAT, "projmat");
     gl4duGenMatrix(GL_FLOAT, "mmat");
     gl4duGenMatrix(GL_FLOAT, "vmat");
@@ -312,87 +315,79 @@ static Model *createCube(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textu
                     -dimx, -dimy, dimz,
                     dimx, -dimy, dimz,
                     -dimx, dimy, dimz,
-                    -dimx, dimy, dimz,
-                    dimx, -dimy, dimz,
+                   /* -dimx, dimy, dimz,
+                    dimx, -dimy, dimz,*/
                     dimx, dimy, dimz,
 
                     dimx, -dimy, dimz,
                     dimx, -dimy, -dimz,
                     dimx, dimy, dimz,
-                    dimx, dimy, dimz,
-                    dimx, -dimy, -dimz,
+                   /* dimx, dimy, dimz,
+                    dimx, -dimy, -dimz,*/
                     dimx, dimy, -dimz,
 
+                     dimx, -dimy, -dimz,
                     -dimx, -dimy, -dimz,
-                    dimx, -dimy, -dimz,
-                    -dimx, dimy, -dimz,
-                    -dimx, dimy, -dimz,
-                    dimx, -dimy, -dimz,
                     dimx, dimy, -dimz,
-
-                    -dimx, -dimy, dimz,
-                    -dimx, -dimy, -dimz,
-                    -dimx, dimy, dimz,
-                    -dimx, dimy, dimz,
-                    -dimx, -dimy, -dimz,
+                   /* -dimx, dimy, -dimz,
+                    dimx, -dimy, -dimz,*/
                     -dimx, dimy, -dimz,
 
+                    -dimx, -dimy, -dimz,
                     -dimx, -dimy, dimz,
-                    dimx, -dimy, dimz,
+                    -dimx, dimy, -dimz,
+                   /* -dimx, dimy, dimz,
+                    -dimx, -dimy, -dimz,*/
+                    -dimx, dimy, dimz,
+
                     -dimx, -dimy, -dimz,
-                    -dimx, -dimy, -dimz,
-                    dimx, -dimy, dimz,
                     dimx, -dimy, -dimz,
+                    -dimx, -dimy, dimz,
+                   /* -dimx, -dimy, -dimz,
+                    dimx, -dimy, dimz,*/
+                    dimx, -dimy, dimz,
 
                     -dimx, dimy, dimz,
                     dimx, dimy, dimz,
                     -dimx, dimy, -dimz,
-                    -dimx, dimy, -dimz,
-                    dimx, dimy, dimz,
+                 /*   -dimx, dimy, -dimz,
+                    dimx, dimy, dimz,*/
                     dimx, dimy, -dimz,
             };
+
+
+
     GLfloat gTriangleTextures[] =
             {
+
                     0.0, 0.0f,
                     1.0f, 0.0f,
                     0.0f, 1.0f,
-                    0.0f, 1.0f,
-                    1.0f, 0.0f,
                     1.0f, 1.0f,
 
                     0.0, 0.0f,
                     1.0f, 0.0f,
                     0.0f, 1.0f,
-                    0.0f, 1.0f,
-                    1.0f, 0.0f,
                     1.0f, 1.0f,
 
                     0.0, 0.0f,
                     1.0f, 0.0f,
                     0.0f, 1.0f,
-                    0.0f, 1.0f,
-                    1.0f, 0.0f,
                     1.0f, 1.0f,
 
                     0.0, 0.0f,
                     1.0f, 0.0f,
                     0.0f, 1.0f,
-                    0.0f, 1.0f,
-                    1.0f, 0.0f,
                     1.0f, 1.0f,
 
                     0.0, 0.0f,
                     1.0f, 0.0f,
                     0.0f, 1.0f,
-                    0.0f, 1.0f,
-                    1.0f, 0.0f,
                     1.0f, 1.0f,
 
                     0.0, 0.0f,
                     1.0f, 0.0f,
                     0.0f, 1.0f,
-                    0.0f, 1.0f,
-                    1.0f, 0.0f,
                     1.0f, 1.0f,
 
 
@@ -402,43 +397,43 @@ static Model *createCube(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textu
                     0.0f, 0.0f, 1.0f,
                     0.0f, 0.0f, 1.0f,
                     0.0f, 0.0f, 1.0f,
+                   /* 0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f,*/
                     0.0f, 0.0f, 1.0f,
-                    0.0f, 0.0f, 1.0f,
-                    0.0f, 0.0f, 1.0f,
 
                     1.0f, 0.0f, 0.0f,
                     1.0f, 0.0f, 0.0f,
                     1.0f, 0.0f, 0.0f,
-                    1.0f, 0.0f, 0.0f,
-                    1.0f, 0.0f, 0.0f,
+                    /*1.0f, 0.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,*/
                     1.0f, 0.0f, 0.0f,
 
                     0.0f, 0.0f, -1.0f,
                     0.0f, 0.0f, -1.0f,
                     0.0f, 0.0f, -1.0f,
-                    0.0f, 0.0f, -1.0f,
-                    0.0f, 0.0f, -1.0f,
+                   /* 0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,*/
                     0.0f, 0.0f, -1.0f,
 
                     -1.0f, 0.0f, 0.0f,
                     -1.0f, 0.0f, 0.0f,
                     -1.0f, 0.0f, 0.0f,
-                    -1.0f, 0.0f, 0.0f,
-                    -1.0f, 0.0f, 0.0f,
+                   /* -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,*/
                     -1.0f, 0.0f, 0.0f,
 
                     0.0f, -1.0f, 0.0f,
                     0.0f, -1.0f, 0.0f,
                     0.0f, -1.0f, 0.0f,
-                    0.0f, -1.0f, 0.0f,
-                    0.0f, -1.0f, 0.0f,
+                   /* 0.0f, -1.0f, 0.0f,
+                    0.0f, -1.0f, 0.0f,*/
                     0.0f, -1.0f, 0.0f,
 
                     0.0f, 1.0f, 0.0f,
                     0.0f, 1.0f, 0.0f,
                     0.0f, 1.0f, 0.0f,
-                    0.0f, 1.0f, 0.0f,
-                    0.0f, 1.0f, 0.0f,
+                   /* 0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,*/
                     0.0f, 1.0f, 0.0f,
             };
 
@@ -466,8 +461,90 @@ static Model *createCube(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textu
     newModel->scale.y = 1;
     newModel->scale.z = 1;
 
+    newModel->drawType = GL_TRIANGLE_STRIP;
+    newModel->size = 24;
+
+    return newModel;
+}
+
+
+static Model *createArbre(GLfloat dimx, GLfloat dimy, GLfloat dimz,GLfloat textureRepeat)
+{
+    Model *newModel = malloc(sizeof *newModel);
+
+    GLfloat gTriangleVertices[] = { -dimx, dimy, 0.0f,
+                                    dimx, dimy, 0.0f,
+                                    -dimx, -dimy, 0.0f,
+                                    dimx, -dimy, 0.0f,
+                                    -dimx, -dimy, 0.0f,
+                                    dimx, dimy, 0.0f,
+
+                                    0.0f,dimy,dimz,
+                                    0.0f,dimy,-dimz,
+                                    0.0f,-dimy,dimz,
+                                    0.0f,-dimy,-dimz,
+                                    0.0f,-dimy,dimz,
+                                    0.0f,dimy,-dimz,
+
+    };
+
+    GLfloat gTriangleTextures[] = {
+                                    textureRepeat, 0.0f,
+                                    0.0f, 0.0f,
+                                    textureRepeat, textureRepeat,
+                                    0.0f, textureRepeat,
+                                    textureRepeat, textureRepeat,
+                                    0.0f, 0.0f,
+
+                                    textureRepeat, 0.0f,
+                                    0.0f, 0.0f,
+                                    textureRepeat, textureRepeat,
+                                    0.0f, textureRepeat,
+                                    textureRepeat, textureRepeat,
+                                    0.0f, 0.0f,
+    };
+
+    GLfloat gTriangleNormales[] = { 0.0f, 0.0f, 1.0f,
+                                    0.0f, 0.0f, 1.0f,
+                                    0.0f, 0.0f, 1.0f,
+                                    0.0f, 0.0f, 1.0f,
+                                    0.0f, 0.0f, 1.0f,
+                                    0.0f, 0.0f, 1.0f,
+
+                                    1.0f, 0.0f, 0.0f,
+                                    1.0f, 0.0f, 0.0f,
+                                    1.0f, 0.0f, 0.0f,
+                                    1.0f, 0.0f, 0.0f,
+                                    1.0f, 0.0f, 0.0f,
+                                    1.0f, 0.0f, 0.0f
+    };
+
+    newModel->gTriangleVertices = malloc(sizeof gTriangleVertices);
+    newModel->gTriangleTextures = malloc(sizeof gTriangleTextures);
+    newModel->gTriangleNormales = malloc(sizeof gTriangleNormales);
+
+    newModel->verticesNum = sizeof gTriangleVertices;
+    newModel->texturesNum = sizeof gTriangleTextures;
+    newModel->normalesNum = sizeof gTriangleNormales;
+
+    memcpy(newModel->gTriangleVertices, gTriangleVertices, newModel->verticesNum);
+    memcpy(newModel->gTriangleTextures, gTriangleTextures, newModel->texturesNum);
+    memcpy(newModel->gTriangleNormales, gTriangleNormales, newModel->normalesNum);
+
+    newModel->position.x = 0;
+    newModel->position.y = 0;
+    newModel->position.z = 0;
+
+    newModel->rotation.x = 0;
+    newModel->rotation.y = 0;
+    newModel->rotation.z = 0;
+
+    newModel->scale.x = 1;
+    newModel->scale.y = 1;
+    newModel->scale.z = 1;
+
     newModel->drawType = GL_TRIANGLES;
-    newModel->size = 36;
+    newModel->size = 12;
 
     return newModel;
 }
@@ -476,7 +553,11 @@ static Model *createPlan(GLfloat dimx, GLfloat dimy, GLfloat textureRepeat)
 {
     Model *newModel = malloc(sizeof *newModel);
 
-    GLfloat gTriangleVertices[] = { -dimx, dimy, 0.0f, dimx, dimy, 0.0f, -dimx, -dimy, 0.0f, dimx, -dimy, 0.0f };
+    GLfloat gTriangleVertices[] = { -dimx, dimy, 0.0f,
+                                    dimx, dimy, 0.0f,
+                                    -dimx, -dimy, 0.0f,
+                                    dimx, -dimy, 0.0f };
+
     GLfloat gTriangleTextures[] = { 0.0f, 0.0f, 0.0f, textureRepeat, textureRepeat, 0.0f, textureRepeat, textureRepeat };
     GLfloat gTriangleNormales[] = { 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f };
 
@@ -654,26 +735,31 @@ _solModel->rotation.x = -90;
 
 for(int i = 0;i<NBARBRE;i++){
 
-/*switch(i%3){
+switch(i%3){
 
 case 0 :
 _arbreTexture[i] = loadTexture("arbre.png");
 break;
 case 1 :
-_arbreTexture[i] = loadTexture("arbre2.jpg");
+_arbreTexture[i] = loadTexture("arbre2.png");
 break;
 case 2 :
-_arbreTexture[i] = loadTexture("arbre3.jpg");
+_arbreTexture[i] = loadTexture("arbre3.png");
 break;
 default:_arbreTexture[i] = loadTexture("arbre.png");
 break;
-}*/
+}
 
-_arbreTexture[i] = loadTexture("arbre.png");
-_arbreModel[i] = createCube(1.0f, 3.0f, 1.0f, 1.0f);
+//_arbreTexture[i] = loadTexture("arbre2.png");
+_arbreModel[i] = createArbre(2.0f, 5.0f, 2.0f, 1.0f);
 
 _arbreModel[i]->position.z = alea(-(Taille_map-2),(Taille_map-2));
 _arbreModel[i]->position.x = alea(-(Taille_map-2),(Taille_map-2));
-_arbreModel[i]->rotation.x = 180;
+//_arbreModel[i]->rotation.z = -90;
 }
+
+
+
+_arbreModel[49]->position.z = -15;
+_arbreModel[49]->position.x = -3;
 }
