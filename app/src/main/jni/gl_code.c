@@ -14,12 +14,15 @@
 #define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, __FILE__, __VA_ARGS__)
 #define ALOGI(...) __android_log_print(ANDROID_LOG_INFO , __FILE__, __VA_ARGS__)
 
+#define NBARBRE 500
+
 static GLuint _program;
 static GLuint _vPositionHandle, _vTextureHandle, _vNormalHandle;
 static GLuint _myTextureHandle;
 static GLuint _pause = 0;
 static GLfloat _width = 1.0f, _height = 1.0f;
 static GLfloat _ratio_x = 1.0f, _ratio_y = 1.0f;
+static GLfloat Taille_map = 500.0f;
 
 typedef struct
 {
@@ -45,8 +48,8 @@ static Model *_skyboxModel;
 static GLint _solTexture;
 static Model *_solModel;
 
-static GLint _arbreTexture;
-static Model *_arbreModel;
+static GLint _arbreTexture[NBARBRE];
+static Model *_arbreModel[NBARBRE];
 
 // Par exemple si tu veux charger sol.png faudrat faire loadTexture("sol.png")
 static GLint loadTexture(const GLchar *filename) {
@@ -553,21 +556,23 @@ static void displayModel(Model *amodel, GLuint texture)
 
 static void scene(int duplicate) {
     GLfloat lum_pos[3] = {0.0f, 0.0f, -20.0f};
-    static int r1 = 0, r2 = 0, r3 = 0;
+    static float r1 = 0, r2 = 0, r3 = 0;
 
     /* Matrice du Model */
     lum_pos[0] = 10.0f * sin(M_PI * r3 / 180.0f);
     glUniform3fv(glGetUniformLocation(_program, "lum_pos"), 1, lum_pos);
 
     _skyboxModel->rotation.y = r1;
-    _arbreModel->rotation.y = r1;
+
 
     displayModel(_skyboxModel, _skyboxTexture);
     displayModel(_solModel, _solTexture);
-    displayModel(_arbreModel, _arbreTexture);
-
+    for(int i = 0;i<NBARBRE;i++) {
+        _arbreModel[i]->rotation.y = r2;
+        displayModel(_arbreModel[i], _arbreTexture[i]);
+    }
     if(!_pause && !duplicate) {
-        r1 += 1;
+        r1 += 0.01;
         r2 += 2;
     }
     r3++;
@@ -597,6 +602,9 @@ static void stereo(GLfloat w, GLfloat h, GLfloat dw, GLfloat dh) {
     scene(1);
     gl4duBindMatrix("vmat");
     gl4duPopMatrix();
+}
+int alea(int a, int b){
+    return rand()%(b-a) +a;
 }
 
 static void draw(void) {
@@ -629,24 +637,43 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_click(JNIEnv * env, jo
 }
 
 JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_initAssets(JNIEnv * env, jobject obj, jobject assetManager) {
-    jniEnv = env;
-    jniAssetManager = assetManager;
+jniEnv = env;
+jniAssetManager = assetManager;
 
-    _skyboxTexture     = loadTexture("skybox.png");
-    _skyboxModel       = createSkybox(50.0f, 50.0f, 50.0f, 1.0f);
+_skyboxTexture = loadTexture("skybox.png");
+_skyboxModel = createSkybox(50.0f, 50.0f, 50.0f, 1.0f);
 
-    _solTexture        = loadTexture("sol.jpg");
-    _solModel          = createPlan(500.0f, 500.0f, 50.0f);
-
-    _arbreTexture      = loadTexture("arbre.png");
-    _arbreModel        = createCube( 1.0f, 3.0f, 1.0f, 1.0f);
-
-    _skyboxModel->rotation.x = 180;
-
-    _solModel->position.y    = -5;
-    _solModel->rotation.x    = -90;
+_solTexture = loadTexture("sol2.jpg");
+_solModel = createPlan(Taille_map, Taille_map, 50.0f);
 
 
-    _arbreModel->position.z  = -20;
-    _arbreModel->rotation.x  = 180;
+_skyboxModel->rotation.x = 180;
+
+_solModel->position.y = -7;
+_solModel->rotation.x = -90;
+
+for(int i = 0;i<NBARBRE;i++){
+
+/*switch(i%3){
+
+case 0 :
+_arbreTexture[i] = loadTexture("arbre.png");
+break;
+case 1 :
+_arbreTexture[i] = loadTexture("arbre2.jpg");
+break;
+case 2 :
+_arbreTexture[i] = loadTexture("arbre3.jpg");
+break;
+default:_arbreTexture[i] = loadTexture("arbre.png");
+break;
+}*/
+
+_arbreTexture[i] = loadTexture("arbre.png");
+_arbreModel[i] = createCube(1.0f, 3.0f, 1.0f, 1.0f);
+
+_arbreModel[i]->position.z = alea(-(Taille_map-2),(Taille_map-2));
+_arbreModel[i]->position.x = alea(-(Taille_map-2),(Taille_map-2));
+_arbreModel[i]->rotation.x = 180;
+}
 }

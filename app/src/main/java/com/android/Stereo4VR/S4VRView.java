@@ -113,6 +113,7 @@ class S4VRView extends GLSurfaceView {
     public S4VRView(Context context, boolean translucent, int depth, int stencil) {
         super(context);
         init(translucent, depth, stencil);
+
     }
 
     private void init(boolean translucent, int depth, int stencil) {
