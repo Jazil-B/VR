@@ -22,7 +22,7 @@ static GLuint _myTextureHandle;
 static GLuint _pause = 0;
 static GLfloat _width = 1.0f, _height = 1.0f;
 static GLfloat _ratio_x = 1.0f, _ratio_y = 1.0f;
-static GLfloat Taille_map = 500.0f;
+static GLfloat Taille_map = 500.0f, depX=0.0f , depZ=-500.0f;
 
 typedef struct
 {
@@ -668,7 +668,7 @@ static void stereo(GLfloat w, GLfloat h, GLfloat dw, GLfloat dh) {
     glViewport(0, 0, w, h);
     gl4duPushMatrix();
     if(_width > _height)
-        gl4duLookAtf(-eyesSapce_2, 0.0f, 0.0f, 0.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
+        gl4duLookAtf(-eyesSapce_2+depX, 0.0f, depZ, 0.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
     else
         gl4duLookAtf(0.0f, -eyesSapce_2, 0.0f, 0.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
     scene(0);
@@ -677,7 +677,7 @@ static void stereo(GLfloat w, GLfloat h, GLfloat dw, GLfloat dh) {
     glViewport(dw, dh, w, h);
     gl4duPushMatrix();
     if(_width > _height)
-        gl4duLookAtf( eyesSapce_2, 0.0f, 0.0f, 0.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
+        gl4duLookAtf( eyesSapce_2+depX, 0.0f, depZ, 0.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
     else
         gl4duLookAtf(0.0f,  eyesSapce_2, 0.0f, 0.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
     scene(1);
@@ -716,6 +716,13 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_draw(JNIEnv * env, job
 JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_click(JNIEnv * env, jobject obj) {
     _pause = !_pause;
 }
+
+JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_event(JNIEnv * env, jobject obj, jint x, jint z) {
+    _pause = !_pause;
+    depX+=x;
+    depZ+=z;
+}
+
 
 JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_initAssets(JNIEnv * env, jobject obj, jobject assetManager) {
 jniEnv = env;
