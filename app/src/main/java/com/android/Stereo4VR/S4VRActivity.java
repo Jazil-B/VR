@@ -17,17 +17,30 @@
 package com.android.Stereo4VR;
 
 import android.app.Activity;
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 
 
-public class S4VRActivity extends Activity {
+public class S4VRActivity extends Activity implements SensorEventListener{
 
     S4VRView mView;
+    SensorManager sensorManager;
+    Sensor sensor;
+
+
 
     @Override protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         mView = new S4VRView(getApplication(), getAssets());
 	    setContentView(mView);
+
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+       // sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+
     }
 
     @Override protected void onPause() {
@@ -36,7 +49,39 @@ public class S4VRActivity extends Activity {
     }
 
     @Override protected void onResume() {
-        super.onResume();
+        super.onResume();/*
+        sensorManager.registerListener(gyroListener, sensor,
+                SensorManager.SENSOR_DELAY_NORMAL);*/
+        sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION), SensorManager.SENSOR_DELAY_FASTEST);
+
         mView.onResume();
+
     }
+
+/*
+
+    public SensorEventListener gyroListener = new SensorEventListener() {*/
+        public void onAccuracyChanged(Sensor sensor, int acc) { }
+
+        public void onSensorChanged(SensorEvent event) {
+
+            if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE)
+            {
+                return;
+            }
+
+            float x = event.values[0];
+            float y = event.values[2];
+            float z = event.values[1];
+
+           // System.out.println("X : " + (int) x + " Y : " + (int) y + " Z : " + (int) z );
+            S4VRLib.gyro(x,y,z);
+
+
+
+        }
+  /*  };*/
+
+
+
 }

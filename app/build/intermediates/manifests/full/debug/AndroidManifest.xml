@@ -17,6 +17,7 @@
             android:name="com.android.Stereo4VR.S4VRActivity"
             android:configChanges="orientation|keyboardHidden"
             android:launchMode="singleTask"
+            android:screenOrientation="landscape"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

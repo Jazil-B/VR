@@ -35,6 +35,10 @@ package com.android.Stereo4VR;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.PixelFormat;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -77,6 +81,9 @@ class S4VRView extends GLSurfaceView {
     private static String _vshader = null;
     private static String _fshader = null;
     private AssetManager _assetManager;
+
+
+
     private OnClickListener _ocl = new OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -116,15 +123,21 @@ class S4VRView extends GLSurfaceView {
 
 
 
+
     public S4VRView(Context context, AssetManager assetManager) {
         super(context);
-
         _assetManager = assetManager;
         setFocusableInTouchMode(true); //Enable soft keyboard on touch for target view
-
+        S4VRActivity gyro = new S4VRActivity();
         setFocusable(true);
         setOnKeyListener(key);
         setOnClickListener(_ocl);
+
+        //System.out.println(gyro.getGyroX());
+       // System.out.println(gyro.getGyroZ());
+
+
+
         if(_vshader == null)
             _vshader = readRawTextFile(getContext(), R.raw.basic_vs);
         if(_fshader == null)
@@ -152,6 +165,7 @@ class S4VRView extends GLSurfaceView {
         init(translucent, depth, stencil);
 
     }
+
 
     private void init(boolean translucent, int depth, int stencil) {
 
@@ -449,3 +463,5 @@ class S4VRView extends GLSurfaceView {
         _frames++;
     }
 }
+
+
