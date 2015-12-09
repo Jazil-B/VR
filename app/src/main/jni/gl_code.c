@@ -15,6 +15,11 @@
 #define ALOGI(...) __android_log_print(ANDROID_LOG_INFO , __FILE__, __VA_ARGS__)
 
 #define NBARBRE 500
+#define ALPHA(x) (((x) >> 24) & 0xFF)
+#define RED(x)   (((x) >> 16) & 0xFF)
+#define GREEN(x) (((x) >>  8) & 0xFF)
+#define BLUE(x)  (((x)      ) & 0xFF)
+#define COLOR(a, r, g, b) (((a) << 24) | ((r) << 16) | ((g) << 8) | (b))
 
 static GLuint _program;
 static GLuint _vPositionHandle, _vTextureHandle, _vNormalHandle;
@@ -22,7 +27,7 @@ static GLuint _myTextureHandle;
 static GLuint _pause = 0;
 static GLfloat _width = 1.0f, _height = 1.0f;
 static GLfloat _ratio_x = 1.0f, _ratio_y = 1.0f;
-static GLfloat Taille_map = 500.0f;
+static GLfloat Taille_map = 500.0f, depX=0.0f , depZ=-420.0f,eyeX=0.0f,eyeY=0.0f,eyeZ=0.0f,  angleX=0.0f,angleY=0.0f,angleZ=0.0f;
 
 typedef struct
 {
@@ -47,6 +52,9 @@ static Model *_skyboxModel;
 
 static GLint _solTexture;
 static Model *_solModel;
+
+static GLint _MonstreTexture;
+static Model *_MonstreModel;
 
 static GLint _arbreTexture[NBARBRE];
 static Model *_arbreModel[NBARBRE];
@@ -97,7 +105,7 @@ static void reshape_one_view_port(int w, int h) {
 
 static void reshape(int w, int h) {
     const GLfloat minEyeDist = 12.0f; /* on prend des centimètres */
-    const GLfloat maxEyeDist = 10000.0f; /* 100 mètres */
+    const GLfloat maxEyeDist = 1000.0f; /* 100 mètres */
     const GLfloat nearSide = minEyeDist * 0.423f * 2.0f; /* pour une ouverture centrée horizontale de 50°, 2 * (sin(25°) ~ 0.423) */
     const GLfloat nearSide_2 = nearSide / 2.0f;
     if((_width = w) > (_height = h)) {
@@ -683,6 +691,7 @@ static void displayModel(Model *amodel, GLuint texture)
 static void scene(int duplicate) {
     GLfloat lum_pos[3] = {0.0f, 0.0f, -20.0f};
     static float r1 = 0, r2 = 0, r3 = 0;
+    static float cpt=0;
 
     /* Matrice du Model */
     //lum_pos[0] = 10.0f * sin(M_PI * r3 / 180.0f);
@@ -690,18 +699,27 @@ static void scene(int duplicate) {
 
     _skyboxModel->rotation.y = r1;
 
+    _MonstreModel->position.y = sin(cpt);
+
+   /* if(cpt%2==0){
+        _MonstreTexture = loadTexture("monster1.png");
+    }else{
+        _MonstreTexture = loadTexture("monster2.png");
+    }*/
 
     displayModel(_skyboxModel, _skyboxTexture);
     displayModel(_solModel, _solTexture);
+    displayModel(_MonstreModel, _MonstreTexture);
     for(int i = 0;i<NBARBRE;i++) {
         _arbreModel[i]->rotation.y = r2;
         displayModel(_arbreModel[i], _arbreTexture[i]);
     }
     if(!_pause && !duplicate) {
         r1 += 0.01;
-        r2 += 2;
+        r2 += 1;
     }
     r3++;
+    cpt+=0.1;
 }
 
 static void stereo(GLfloat w, GLfloat h, GLfloat dw, GLfloat dh) {
@@ -713,18 +731,18 @@ static void stereo(GLfloat w, GLfloat h, GLfloat dw, GLfloat dh) {
     glViewport(0, 0, w, h);
     gl4duPushMatrix();
     if(_width > _height)
-        gl4duLookAtf(-eyesSapce_2, 0.0f, 0.0f, 0.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
+        gl4duLookAtf(-eyesSapce_2+depX, 0.0f, depZ, eyeX, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
     else
-        gl4duLookAtf(0.0f, -eyesSapce_2, 0.0f, 0.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
+        gl4duLookAtf(0.0f, -eyesSapce_2, 0.0f, 0.0f, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
     scene(0);
     gl4duBindMatrix("vmat");
     gl4duPopMatrix();
     glViewport(dw, dh, w, h);
     gl4duPushMatrix();
     if(_width > _height)
-        gl4duLookAtf( eyesSapce_2, 0.0f, 0.0f, 0.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
+        gl4duLookAtf( eyesSapce_2+depX, 0.0f, depZ, eyeX, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
     else
-        gl4duLookAtf(0.0f,  eyesSapce_2, 0.0f, 0.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
+        gl4duLookAtf(0.0f,  eyesSapce_2, 0.0f, 0.0f, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
     scene(1);
     gl4duBindMatrix("vmat");
     gl4duPopMatrix();
@@ -762,15 +780,75 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_click(JNIEnv * env, jo
     _pause = !_pause;
 }
 
+JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_event(JNIEnv * env, jobject obj, jint x, jint z) {
+    //_pause = !_pause;
+    depX+=x;
+    depZ+=z;
+}
+
+JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_gyro(JNIEnv * env, jobject obj, jfloat x, jfloat y, jfloat z) {
+//_pause = !_pause;
+ /*
+    angleX+=x;
+    eyeX=sin(angleX*M_PI);*/
+//eyeX = (int)x;
+eyeY = (int)y*2;
+    //depX+=y;
+
+}
+
+JNIEXPORT void JNICALL  Java_com_noalien_jniblur_jniInterface_convolute(JNIEnv * env, jobject this, jintArray pixels, jint pw, jint ph) {
+int x, y, ypw, ec = 0;
+unsigned long r, g, b, moi, voisinH, voisinB, voisinG, voisinD;
+jint * ppixels = NULL, * temp = NULL;
+if ((ppixels = (*env)->GetIntArrayElements(env, pixels, NULL)) == NULL) { ec = -1; goto convolute_endFlag; }
+if((temp = malloc(pw * ph * sizeof *temp)) == NULL) { ec = -2; goto convolute_endFlag; }
+for(x = 0, ypw = (ph - 1) * pw; x < pw; x++) {
+temp[x] = ppixels[x];
+temp[ypw + x] = ppixels[ypw + x];
+}
+for(y = 0; y < ph; y++) {
+temp[(ypw = y * pw)] = ppixels[ypw];
+temp[ypw + pw - 1] = ppixels[ypw + pw - 1];
+}
+for(y = 1; y < ph - 1; y++) {
+for(x = 1; x < pw - 1; x++) {
+moi     = ppixels[(ypw = y * pw) + x];
+voisinG = ppixels[ypw + x - 1];
+voisinD = ppixels[ypw + x + 1];
+voisinH = ppixels[ypw - pw + x];
+voisinB = ppixels[ypw + pw + x];
+r = (RED(voisinH) + RED(voisinB) + RED(voisinG) + RED(voisinD) + RED(moi)) / 5;
+g = (GREEN(voisinH) + GREEN(voisinB) + GREEN(voisinG) + GREEN(voisinD) + GREEN(moi)) / 5;
+b = (BLUE(voisinH) + BLUE(voisinB) + BLUE(voisinG) + BLUE(voisinD) + BLUE(moi)) / 5;
+temp[ypw + x] = COLOR(255, r, g, b);
+}
+}
+memcpy(ppixels, temp, pw * ph * sizeof *temp);
+convolute_endFlag:
+if(temp) free(temp);
+if(ppixels) (*env)->ReleaseIntArrayElements(env, pixels, ppixels, 0);
+}
+
+
 JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_initAssets(JNIEnv * env, jobject obj, jobject assetManager) {
 jniEnv = env;
 jniAssetManager = assetManager;
 
 _skyboxTexture = loadTexture("skybox.png");
-_skyboxModel = createSkybox(50.0f, 50.0f, 50.0f, 1.0f);
+_skyboxModel = createSkybox(500.0f, 500.0f, 500.0f, 1.0f);
 
 _solTexture = loadTexture("sol2.jpg");
 _solModel = createPlan(Taille_map, Taille_map, 50.0f);
+
+_MonstreTexture = loadTexture("monster1.png");
+_MonstreModel = createArbre(5.0f, 3.0f,5.0f, 1.0f);
+
+
+_MonstreModel->position.z = 400;
+_MonstreModel->position.x = -3;
+_MonstreModel->position.y = 3;
+
 
 
 _skyboxModel->rotation.x = 180;
@@ -809,6 +887,6 @@ _arbreModel[i]->position.x = alea(-(Taille_map-2),(Taille_map-2));
 
 
 
-_arbreModel[49]->position.z = -15;
+_arbreModel[49]->position.z = -400;
 _arbreModel[49]->position.x = -3;
 }

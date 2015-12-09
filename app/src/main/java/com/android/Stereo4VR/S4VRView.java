@@ -35,8 +35,14 @@ package com.android.Stereo4VR;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.PixelFormat;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.opengl.GLSurfaceView;
+import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 
 import java.io.BufferedReader;
@@ -76,18 +82,80 @@ class S4VRView extends GLSurfaceView {
     private static String _vshader = null;
     private static String _fshader = null;
     private AssetManager _assetManager;
+
+
     private OnClickListener _ocl = new OnClickListener() {
         @Override
         public void onClick(View v) {
             S4VRLib.click();
         }
     };
+    private OnKeyListener key = new OnKeyListener() {
+        @Override
+        public boolean onKey(View v, int keyCode, KeyEvent event) {
+
+            if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                switch (keyCode) {
+
+
+                    case KeyEvent.KEYCODE_DPAD_UP:
+                        System.out.println("up key pressed");
+                        S4VRLib.event(0, -1);
+                        return true;
+                    case KeyEvent.KEYCODE_DPAD_DOWN:
+                        System.out.println("down key pressed");
+                        S4VRLib.event(0, 1);
+                        return true;
+                    case KeyEvent.KEYCODE_DPAD_LEFT:
+                        System.out.println("left key pressed");
+                        S4VRLib.event(-1, 0);
+                        return true;
+                    case KeyEvent.KEYCODE_DPAD_RIGHT:
+                        System.out.println("right key pressed");
+                        S4VRLib.event(1, 0);
+                        return true;
+                    case KeyEvent.KEYCODE_W:
+                        System.out.println("up key pressed");
+                        S4VRLib.event(0, -1);
+                        return true;
+                    case KeyEvent.KEYCODE_S:
+                        System.out.println("down key pressed");
+                        S4VRLib.event(0, 1);
+                        return true;
+                    case KeyEvent.KEYCODE_A:
+                        System.out.println("left key pressed");
+                        S4VRLib.event(-1, 0);
+                        return true;
+                    case KeyEvent.KEYCODE_L:
+                        System.out.println("right key pressed");
+                        S4VRLib.event(1, 0);
+                        return true;
+
+
+
+                }
+            }
+            return false;
+        }
+    };
+
+
+
+
     public S4VRView(Context context, AssetManager assetManager) {
         super(context);
-
         _assetManager = assetManager;
-
+        setFocusableInTouchMode(true); //Enable soft keyboard on touch for target view
+        S4VRActivity gyro = new S4VRActivity();
+        setFocusable(true);
+        setOnKeyListener(key);
         setOnClickListener(_ocl);
+
+        //System.out.println(gyro.getGyroX());
+       // System.out.println(gyro.getGyroZ());
+
+
+
         if(_vshader == null)
             _vshader = readRawTextFile(getContext(), R.raw.basic_vs);
         if(_fshader == null)
@@ -115,6 +183,7 @@ class S4VRView extends GLSurfaceView {
         init(translucent, depth, stencil);
 
     }
+
 
     private void init(boolean translucent, int depth, int stencil) {
 
@@ -412,3 +481,5 @@ class S4VRView extends GLSurfaceView {
         _frames++;
     }
 }
+
+

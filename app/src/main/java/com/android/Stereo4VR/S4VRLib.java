@@ -36,5 +36,8 @@ public class S4VRLib {
      public static native void reshape(int width, int height);
     public static native void draw();
     public static native void click();
+    public static native void event(int x, int z);
+    public static native void gyro(float x,float y,float z);
+    static public native void convolute(int pixels[], int w, int h);
     public static native void initAssets(AssetManager assetManager);
 }
