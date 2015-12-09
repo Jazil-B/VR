@@ -51,6 +51,7 @@ static Model *_solModel;
 static GLint _arbreTexture[NBARBRE];
 static Model *_arbreModel[NBARBRE];
 
+
 // Par exemple si tu veux charger sol.png faudrat faire loadTexture("sol.png")
 static GLint loadTexture(const GLchar *filename) {
     GLint idTexture = 0;
@@ -122,6 +123,7 @@ static void reshape(int w, int h) {
 }
 
 static int init(const char * vs, const char * fs) {
+
     _program = gl4droidCreateProgram(vs, fs);
     if (!_program)
         return 0;
@@ -138,6 +140,7 @@ static int init(const char * vs, const char * fs) {
     gl4duGenMatrix(GL_FLOAT, "vmat");
     return 1;
 }
+
 
 static Model *createSkybox(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textureRepeat)
 {
@@ -472,23 +475,51 @@ static Model *createArbre(GLfloat dimx, GLfloat dimy, GLfloat dimz,GLfloat textu
 {
     Model *newModel = malloc(sizeof *newModel);
 
-    GLfloat gTriangleVertices[] = { -dimx, dimy, 0.0f,
-                                    dimx, dimy, 0.0f,
-                                    -dimx, -dimy, 0.0f,
-                                    dimx, -dimy, 0.0f,
-                                    -dimx, -dimy, 0.0f,
-                                    dimx, dimy, 0.0f,
+    GLfloat gTriangleVertices[] = { -dimx, dimy, 0.01f,
+                                    dimx, dimy, 0.01f,
+                                    -dimx, -dimy, 0.01f,
+                                    dimx, -dimy, 0.01f,
+                                    -dimx, -dimy, 0.01f,
+                                    dimx, dimy, 0.01f,
 
-                                    0.0f,dimy,dimz,
-                                    0.0f,dimy,-dimz,
-                                    0.0f,-dimy,dimz,
-                                    0.0f,-dimy,-dimz,
-                                    0.0f,-dimy,dimz,
-                                    0.0f,dimy,-dimz,
+                                    -dimx, dimy, -0.01f,
+                                    dimx, dimy, -0.01f,
+                                    -dimx, -dimy, -0.01f,
+                                    dimx, -dimy, -0.01f,
+                                    -dimx, -dimy, -0.01f,
+                                    dimx, dimy, -0.01f,
+
+                                    0.01f,dimy,dimz,
+                                    0.01f,dimy,-dimz,
+                                    0.01f,-dimy,dimz,
+                                    0.01f,-dimy,-dimz,
+                                    0.01f,-dimy,dimz,
+                                    0.01f,dimy,-dimz,
+
+                                    -0.01f,dimy,dimz,
+                                    -0.01f,dimy,-dimz,
+                                    -0.01f,-dimy,dimz,
+                                    -0.01f,-dimy,-dimz,
+                                    -0.01f,-dimy,dimz,
+                                    -0.01f,dimy,-dimz,
 
     };
 
     GLfloat gTriangleTextures[] = {
+                                    textureRepeat, 0.0f,
+                                    0.0f, 0.0f,
+                                    textureRepeat, textureRepeat,
+                                    0.0f, textureRepeat,
+                                    textureRepeat, textureRepeat,
+                                    0.0f, 0.0f,
+
+                                    textureRepeat, 0.0f,
+                                    0.0f, 0.0f,
+                                    textureRepeat, textureRepeat,
+                                    0.0f, textureRepeat,
+                                    textureRepeat, textureRepeat,
+                                    0.0f, 0.0f,
+
                                     textureRepeat, 0.0f,
                                     0.0f, 0.0f,
                                     textureRepeat, textureRepeat,
@@ -511,12 +542,26 @@ static Model *createArbre(GLfloat dimx, GLfloat dimy, GLfloat dimz,GLfloat textu
                                     0.0f, 0.0f, 1.0f,
                                     0.0f, 0.0f, 1.0f,
 
+                                    0.0f, 0.0f, -1.0f,
+                                    0.0f, 0.0f, -1.0f,
+                                    0.0f, 0.0f, -1.0f,
+                                    0.0f, 0.0f, -1.0f,
+                                    0.0f, 0.0f, -1.0f,
+                                    0.0f, 0.0f, -1.0f,
+
                                     1.0f, 0.0f, 0.0f,
                                     1.0f, 0.0f, 0.0f,
                                     1.0f, 0.0f, 0.0f,
                                     1.0f, 0.0f, 0.0f,
                                     1.0f, 0.0f, 0.0f,
-                                    1.0f, 0.0f, 0.0f
+                                    1.0f, 0.0f, 0.0f,
+
+                                    -1.0f, 0.0f, 0.0f,
+                                    -1.0f, 0.0f, 0.0f,
+                                    -1.0f, 0.0f, 0.0f,
+                                    -1.0f, 0.0f, 0.0f,
+                                    -1.0f, 0.0f, 0.0f,
+                                    -1.0f, 0.0f, 0.0f,
     };
 
     newModel->gTriangleVertices = malloc(sizeof gTriangleVertices);
@@ -544,7 +589,7 @@ static Model *createArbre(GLfloat dimx, GLfloat dimy, GLfloat dimz,GLfloat textu
     newModel->scale.z = 1;
 
     newModel->drawType = GL_TRIANGLES;
-    newModel->size = 12;
+    newModel->size = 24;
 
     return newModel;
 }
@@ -636,7 +681,7 @@ static void displayModel(Model *amodel, GLuint texture)
 }
 
 static void scene(int duplicate) {
-    GLfloat lum_pos[3] = {0.0f, 0.0f, -20.0f};
+    //GLfloat lum_pos[3] = {0.0f, 0.0f, -20.0f};
     static float r1 = 0, r2 = 0, r3 = 0;
 
     /* Matrice du Model */
@@ -732,6 +777,7 @@ _skyboxModel->rotation.x = 180;
 
 _solModel->position.y = -7;
 _solModel->rotation.x = -90;
+
 
 for(int i = 0;i<NBARBRE;i++){
 
