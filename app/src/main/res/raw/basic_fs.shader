@@ -31,8 +31,8 @@ void main() {
     float fogFactor = 1.0 - clamp(exp2(-density * density * fogDistance * fogDistance * LOG2), 0.0, 1.0);
 
     //gl_FragColor = mix(texture2D(myTexture, out_texCoord) * light, vec4(0.5, 0.5, 0.5, 1.0), fogFactor);
-    gl_FragColor = mix(texture2D(myTexture, out_texCoord), vec4(0.5, 0.5, 0.5, 1.0), fogFactor);
+   //gl_FragColor = mix(texture2D(myTexture, out_texCoord), vec4(0.5, 0.5, 0.5, 1.0), fogFactor);
 
     // Décommente si tu veux sans le brouillard
-    //gl_FragColor = texture2D(myTexture, out_texCoord);
+    gl_FragColor = texture2D(myTexture, out_texCoord) * light;
 }

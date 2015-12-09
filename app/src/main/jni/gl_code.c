@@ -681,11 +681,11 @@ static void displayModel(Model *amodel, GLuint texture)
 }
 
 static void scene(int duplicate) {
-    //GLfloat lum_pos[3] = {0.0f, 0.0f, -20.0f};
+    GLfloat lum_pos[3] = {0.0f, 0.0f, -20.0f};
     static float r1 = 0, r2 = 0, r3 = 0;
 
     /* Matrice du Model */
-    lum_pos[0] = 10.0f * sin(M_PI * r3 / 180.0f);
+    //lum_pos[0] = 10.0f * sin(M_PI * r3 / 180.0f);
     glUniform3fv(glGetUniformLocation(_program, "lum_pos"), 1, lum_pos);
 
     _skyboxModel->rotation.y = r1;
@@ -778,6 +778,9 @@ _skyboxModel->rotation.x = 180;
 _solModel->position.y = -7;
 _solModel->rotation.x = -90;
 
+/*_solModel = createPlan(10, 10, 1.0f);
+_solModel->position.z = -10;
+_solModel->rotation.x = -95;*/
 
 for(int i = 0;i<NBARBRE;i++){
 
