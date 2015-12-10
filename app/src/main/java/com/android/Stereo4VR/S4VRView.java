@@ -40,6 +40,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.opengl.GLSurfaceView;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -83,7 +84,6 @@ class S4VRView extends GLSurfaceView {
     private AssetManager _assetManager;
 
 
-
     private OnClickListener _ocl = new OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -114,6 +114,24 @@ class S4VRView extends GLSurfaceView {
                         System.out.println("right key pressed");
                         S4VRLib.event(1, 0);
                         return true;
+                    case KeyEvent.KEYCODE_W:
+                        System.out.println("up key pressed");
+                        S4VRLib.event(0, -1);
+                        return true;
+                    case KeyEvent.KEYCODE_S:
+                        System.out.println("down key pressed");
+                        S4VRLib.event(0, 1);
+                        return true;
+                    case KeyEvent.KEYCODE_A:
+                        System.out.println("left key pressed");
+                        S4VRLib.event(-1, 0);
+                        return true;
+                    case KeyEvent.KEYCODE_L:
+                        System.out.println("right key pressed");
+                        S4VRLib.event(1, 0);
+                        return true;
+
+
 
                 }
             }

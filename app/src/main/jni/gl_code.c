@@ -65,6 +65,7 @@ static GLint loadTexture(const GLchar *filename) {
     GLint idTexture = 0;
 
     AssetRessource assetRessource = openAsset(filename);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_RWops *rw = SDL_RWFromMem(assetRessource.buffer, assetRessource.size);
     closeAsset(assetRessource);
     SDL_Surface *image = IMG_Load_RW(rw, 1);
@@ -105,7 +106,7 @@ static void reshape_one_view_port(int w, int h) {
 
 static void reshape(int w, int h) {
     const GLfloat minEyeDist = 12.0f; /* on prend des centimètres */
-    const GLfloat maxEyeDist = 70.0f; /* 100 mètres */
+    const GLfloat maxEyeDist = 1000.0f; /* 100 mètres 70*/
     const GLfloat nearSide = minEyeDist * 0.423f * 2.0f; /* pour une ouverture centrée horizontale de 50°, 2 * (sin(25°) ~ 0.423) */
     const GLfloat nearSide_2 = nearSide / 2.0f;
     if((_width = w) > (_height = h)) {
@@ -140,7 +141,7 @@ static int init(const char * vs, const char * fs) {
     _vNormalHandle = glGetAttribLocation(_program, "vNormal");
     _myTextureHandle = glGetAttribLocation(_program, "myTexture");
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-    glEnable(GL_DEPTH_TEST);
+   // glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     gl4duGenMatrix(GL_FLOAT, "projmat");
@@ -657,6 +658,13 @@ static void displayModel(Model *amodel, GLuint texture)
 {
     GLfloat mat[16];
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc( GL_LEQUAL );
+    glDepthMask(GL_TRUE);
+    glClearDepthf(1.0f);
+
+   /* glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);*/
 
     glVertexAttribPointer(_vPositionHandle, 3, GL_FLOAT, GL_FALSE, 0, amodel->gTriangleVertices);
     glEnableVertexAttribArray(_vPositionHandle);
@@ -697,11 +705,11 @@ static void scene(int duplicate) {
     GLfloat lum_pos[3] = {0.0f, 0.0f, -20.0f};
     static float r1 = 0, r2 = 0, r3 = 0;
     static float cpt=0;
-    glEnable(GL_DEPTH_TEST);
+   // glEnable(GL_DEPTH_TEST);
 //    glEnable(GL_CULL_FACE);
 
     /* Matrice du Model */
-    lum_pos[0] = 10.0f * sin(M_PI * r3 / 180.0f);
+    //lum_pos[0] = 10.0f * sin(M_PI * r3 / 180.0f);
     glUniform3fv(glGetUniformLocation(_program, "lum_pos"), 1, lum_pos);
 
     _skyboxModel->rotation.y = r1;
@@ -719,7 +727,7 @@ static void scene(int duplicate) {
     displayModel(_MonstreModel, _MonstreTexture);
     for(int i = 0;i<NBARBRE;i++) {
         _arbreModel[i]->rotation.y = r2;
-        if(distance(_arbreModel[i]->position.x,_arbreModel[i]->position.z)<=80.0) {
+        if(distance(_arbreModel[i]->position.x,_arbreModel[i]->position.z)<=100.0) {
             displayModel(_arbreModel[i], _arbreTexture[i]);
         }
     }
@@ -805,7 +813,7 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_gyro(JNIEnv * env, job
     angleX+=x;
     eyeX=sin(angleX*M_PI);*/
 //eyeX = (int)x;
-eyeY = -(int)y;
+eyeY = (int)y;
     //depX+=y;
 
 }
@@ -868,7 +876,10 @@ _skyboxModel->rotation.x = 180;
 
 _solModel->position.y = -7;
 _solModel->rotation.x = -90;
-
+_solModel->rotation.y = 180;
+/*_solModel = createPlan(10, 10, 1.0f);
+_solModel->position.z = -10;
+_solModel->rotation.x = -95;*/
 
 for(int i = 0;i<NBARBRE;i++){
 

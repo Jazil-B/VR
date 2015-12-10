@@ -22,6 +22,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 
 
@@ -31,7 +32,7 @@ public class S4VRActivity extends Activity implements SensorEventListener{
     SensorManager sensorManager;
     Sensor sensor;
 
-
+    public MediaPlayer backgroundMusic;
 
     @Override protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
@@ -41,9 +42,14 @@ public class S4VRActivity extends Activity implements SensorEventListener{
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
        // sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
+        backgroundMusic = MediaPlayer.create(this, R.raw.music);
+        backgroundMusic.start();
+        backgroundMusic.setLooping(true);
+
     }
 
     @Override protected void onPause() {
+        backgroundMusic.pause();
         super.onPause();
         mView.onPause();
     }
