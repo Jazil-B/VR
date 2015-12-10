@@ -27,7 +27,9 @@ static GLuint _myTextureHandle;
 static GLuint _pause = 0;
 static GLfloat _width = 1.0f, _height = 1.0f;
 static GLfloat _ratio_x = 1.0f, _ratio_y = 1.0f;
-static GLfloat Taille_map = 500.0f, depX=0.0f , depZ=-420.0f,eyeX=0.0f,eyeY=0.0f,eyeZ=0.0f,  angleX=0.0f,angleY=0.0f,angleZ=0.0f, DdepX;
+static GLfloat Taille_map = 500.0f, depX=0.0f , depZ=-420.0f,eyeX=0.0f,eyeY=0.0f,eyeZ=0.0f,
+        angleX=0.0f,angleY=0.0f,angleZ=0.0f, DdepX, pas_monster=10.0f,L_arbre=4.0f,H_arbre=10.0f;
+static int tempsPrecedent = 0, tempsActuel = 0,stop=0;
 
 typedef struct
 {
@@ -150,6 +152,35 @@ static int init(const char * vs, const char * fs) {
     return 1;
 }
 
+static void IA_monster(){
+    float dist_z_plus,dist_z_moins,dist_x_plus,dist_x_moins;
+
+    dist_z_plus=abs(depZ-(_MonstreModel->position.z+pas_monster));
+    dist_z_moins=abs(depZ-(_MonstreModel->position.z-pas_monster));
+
+    dist_x_plus=abs(DdepX-(_MonstreModel->position.x+pas_monster));
+    dist_x_moins=abs(DdepX-(_MonstreModel->position.x-pas_monster));
+
+    if(dist_z_moins<dist_z_plus){
+        _MonstreModel->position.z-=pas_monster;
+    }else{
+        _MonstreModel->position.z+=pas_monster;
+    }
+
+    if(dist_x_moins<dist_x_plus){
+        _MonstreModel->position.x-=pas_monster;
+    }else{
+        _MonstreModel->position.x+=pas_monster;
+    }
+}
+
+int collision(float x,float z){
+
+    if(x-L_arbre<DdepX && DdepX<x+L_arbre && z-L_arbre<depZ && depZ<z+L_arbre){
+        return 1;
+    }
+    return 0;
+}
 
 static Model *createSkybox(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textureRepeat)
 {
@@ -705,6 +736,7 @@ static void scene(int duplicate) {
     GLfloat lum_pos[3] = {0.0f, 0.0f, -20.0f};
     static float r1 = 0, r2 = 0, r3 = 0;
     static float cpt=0;
+
    // glEnable(GL_DEPTH_TEST);
 //    glEnable(GL_CULL_FACE);
 
@@ -716,6 +748,13 @@ static void scene(int duplicate) {
 
     _MonstreModel->position.y = sin(cpt);
 
+    tempsActuel = SDL_GetTicks();
+    if (tempsActuel - tempsPrecedent > 1000) /* Si 30 ms se sont écoulées */
+    {
+        IA_monster();
+        tempsPrecedent = tempsActuel; /* Le temps "actuel" devient le temps "precedent" pour nos futurs calculs */
+    }
+
    /* if(cpt%2==0){
         _MonstreTexture = loadTexture("monster1.png");
     }else{
@@ -725,12 +764,17 @@ static void scene(int duplicate) {
     displayModel(_skyboxModel, _skyboxTexture);
     displayModel(_solModel, _solTexture);
     displayModel(_MonstreModel, _MonstreTexture);
+
     for(int i = 0;i<NBARBRE;i++) {
         _arbreModel[i]->rotation.y = r2;
         if(distance(_arbreModel[i]->position.x,_arbreModel[i]->position.z)<=100.0) {
+            if(collision(_arbreModel[i]->position.x,_arbreModel[i]->position.z)==1){
+                stop=1;
+            }
             displayModel(_arbreModel[i], _arbreTexture[i]);
         }
     }
+
     if(!_pause && !duplicate) {
         r1 += 0.01;
         r2 += 1;
@@ -801,10 +845,17 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_click(JNIEnv * env, jo
     _pause = !_pause;
 }
 
-JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_event(JNIEnv * env, jobject obj, jint x, jint z) {
+JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_event(JNIEnv * env, jobject obj, jint x_left, jint z_up, jint x_right, jint z_down) {
     //_pause = !_pause;
-    depX+=x;
-    depZ+=z;
+    if(stop==0){
+        depX+=x_right;
+        depZ+=z_up;
+        depX-=x_left;
+        depZ-=z_down;
+    }else{
+        depZ-=z_down;
+        stop=0;
+    }
 }
 
 JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_gyro(JNIEnv * env, jobject obj, jfloat x, jfloat y, jfloat z) {
@@ -899,7 +950,7 @@ break;
 }
 
 //_arbreTexture[i] = loadTexture("arbre2.png");
-_arbreModel[i] = createArbre(2.0f, 5.0f, 2.0f, 1.0f);
+_arbreModel[i] = createArbre(L_arbre, H_arbre, L_arbre, 1.0f);//L_arbre=2.0f  H_arbre=5.0f
 
 _arbreModel[i]->position.z = alea(-(Taille_map-2),(Taille_map-2));
 _arbreModel[i]->position.x = alea(-(Taille_map-2),(Taille_map-2));

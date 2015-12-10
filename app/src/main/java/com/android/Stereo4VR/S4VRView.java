@@ -100,35 +100,35 @@ class S4VRView extends GLSurfaceView {
 
                     case KeyEvent.KEYCODE_DPAD_UP:
                         System.out.println("up key pressed");
-                        S4VRLib.event(0, -1);
+                        S4VRLib.event(0, 1,0,0);
                         return true;
                     case KeyEvent.KEYCODE_DPAD_DOWN:
                         System.out.println("down key pressed");
-                        S4VRLib.event(0, 1);
+                        S4VRLib.event(0, 0,0,1);
                         return true;
                     case KeyEvent.KEYCODE_DPAD_LEFT:
                         System.out.println("left key pressed");
-                        S4VRLib.event(-1, 0);
+                        S4VRLib.event(1, 0,0,0);
                         return true;
                     case KeyEvent.KEYCODE_DPAD_RIGHT:
                         System.out.println("right key pressed");
-                        S4VRLib.event(1, 0);
+                        S4VRLib.event(0,0,1,0);
                         return true;
                     case KeyEvent.KEYCODE_W:
                         System.out.println("up key pressed");
-                        S4VRLib.event(0, -1);
+                        S4VRLib.event(0, 1,0,0);
                         return true;
                     case KeyEvent.KEYCODE_S:
                         System.out.println("down key pressed");
-                        S4VRLib.event(0, 1);
+                        S4VRLib.event(0, 0,0,1);
                         return true;
                     case KeyEvent.KEYCODE_A:
                         System.out.println("left key pressed");
-                        S4VRLib.event(-1, 0);
+                        S4VRLib.event(1, 0,0,0);
                         return true;
                     case KeyEvent.KEYCODE_L:
                         System.out.println("right key pressed");
-                        S4VRLib.event(1, 0);
+                        S4VRLib.event(0,0,1,0);
                         return true;
 
 
