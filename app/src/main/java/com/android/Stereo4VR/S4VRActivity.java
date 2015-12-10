@@ -33,8 +33,16 @@ public class S4VRActivity extends Activity implements SensorEventListener{
     Sensor sensor;
 
     public MediaPlayer backgroundMusic;
+    //public MediaPlayer wolfMusic;
+    //public MediaPlayer owlMusic;
+
+    public boolean on = true;
 
     @Override protected void onCreate(Bundle icicle) {
+
+        long start = System.currentTimeMillis();
+        int temps = 5;
+
         super.onCreate(icicle);
         mView = new S4VRView(getApplication(), getAssets());
 	    setContentView(mView);
@@ -42,14 +50,23 @@ public class S4VRActivity extends Activity implements SensorEventListener{
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
        // sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
-        backgroundMusic = MediaPlayer.create(this, R.raw.music);
+        backgroundMusic = MediaPlayer.create(this, R.raw.creepy_ambient);
+        /*wolfMusic = MediaPlayer.create(this, R.raw.wolf);
+        owlMusic = MediaPlayer.create(this, R.raw.owl);*/
+
         backgroundMusic.start();
         backgroundMusic.setLooping(true);
+
+
+        /*if (System.currentTimeMillis() > (start + (500 * temps))){
+            owlMusic.start();
+            start = System.currentTimeMillis();
+        }*/
+
 
     }
 
     @Override protected void onPause() {
-        backgroundMusic.pause();
         super.onPause();
         mView.onPause();
     }

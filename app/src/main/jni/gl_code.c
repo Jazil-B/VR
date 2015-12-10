@@ -14,7 +14,7 @@
 #define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, __FILE__, __VA_ARGS__)
 #define ALOGI(...) __android_log_print(ANDROID_LOG_INFO , __FILE__, __VA_ARGS__)
 
-#define NBARBRE 500
+#define NBARBRE 5000
 #define ALPHA(x) (((x) >> 24) & 0xFF)
 #define RED(x)   (((x) >> 16) & 0xFF)
 #define GREEN(x) (((x) >>  8) & 0xFF)
@@ -27,7 +27,7 @@ static GLuint _myTextureHandle;
 static GLuint _pause = 0;
 static GLfloat _width = 1.0f, _height = 1.0f;
 static GLfloat _ratio_x = 1.0f, _ratio_y = 1.0f;
-static GLfloat Taille_map = 500.0f, depX=0.0f , depZ=-420.0f,eyeX=0.0f,eyeY=0.0f,eyeZ=0.0f,  angleX=0.0f,angleY=0.0f,angleZ=0.0f;
+static GLfloat Taille_map = 500.0f, depX=0.0f , depZ=-420.0f,eyeX=0.0f,eyeY=0.0f,eyeZ=0.0f,  angleX=0.0f,angleY=0.0f,angleZ=0.0f, DdepX;
 
 typedef struct
 {
@@ -105,7 +105,7 @@ static void reshape_one_view_port(int w, int h) {
 
 static void reshape(int w, int h) {
     const GLfloat minEyeDist = 12.0f; /* on prend des centimètres */
-    const GLfloat maxEyeDist = 1000.0f; /* 100 mètres */
+    const GLfloat maxEyeDist = 70.0f; /* 100 mètres */
     const GLfloat nearSide = minEyeDist * 0.423f * 2.0f; /* pour une ouverture centrée horizontale de 50°, 2 * (sin(25°) ~ 0.423) */
     const GLfloat nearSide_2 = nearSide / 2.0f;
     if((_width = w) > (_height = h)) {
@@ -139,7 +139,7 @@ static int init(const char * vs, const char * fs) {
     _vTextureHandle = glGetAttribLocation(_program, "vTexture");
     _vNormalHandle = glGetAttribLocation(_program, "vNormal");
     _myTextureHandle = glGetAttribLocation(_program, "myTexture");
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -656,6 +656,7 @@ static void deleteModel(Model *aModel)
 static void displayModel(Model *amodel, GLuint texture)
 {
     GLfloat mat[16];
+    glEnable(GL_DEPTH_TEST);
 
     glVertexAttribPointer(_vPositionHandle, 3, GL_FLOAT, GL_FALSE, 0, amodel->gTriangleVertices);
     glEnableVertexAttribArray(_vPositionHandle);
@@ -688,10 +689,16 @@ static void displayModel(Model *amodel, GLuint texture)
     glDrawArrays(amodel->drawType, 0, amodel->size);
 }
 
+float distance(float posX, float posZ){
+    return (sqrt((DdepX-posX)*(DdepX-posX)+(depZ-posZ)*(depZ-posZ)));
+}
+
 static void scene(int duplicate) {
     GLfloat lum_pos[3] = {0.0f, 0.0f, -20.0f};
     static float r1 = 0, r2 = 0, r3 = 0;
     static float cpt=0;
+    glEnable(GL_DEPTH_TEST);
+//    glEnable(GL_CULL_FACE);
 
     /* Matrice du Model */
     //lum_pos[0] = 10.0f * sin(M_PI * r3 / 180.0f);
@@ -712,7 +719,9 @@ static void scene(int duplicate) {
     displayModel(_MonstreModel, _MonstreTexture);
     for(int i = 0;i<NBARBRE;i++) {
         _arbreModel[i]->rotation.y = r2;
-        displayModel(_arbreModel[i], _arbreTexture[i]);
+        if(distance(_arbreModel[i]->position.x,_arbreModel[i]->position.z)<=80.0) {
+            displayModel(_arbreModel[i], _arbreTexture[i]);
+        }
     }
     if(!_pause && !duplicate) {
         r1 += 0.01;
@@ -725,13 +734,15 @@ static void scene(int duplicate) {
 static void stereo(GLfloat w, GLfloat h, GLfloat dw, GLfloat dh) {
     const GLfloat eyesSapce = 6.0f; /* 6cm entre les deux yeux */
     const GLfloat eyesSapce_2 = eyesSapce / 2.0f;
+
     /* Matrices de View */
+    DdepX=eyesSapce_2+depX;
     gl4duBindMatrix("vmat");
     gl4duLoadIdentityf();
     glViewport(0, 0, w, h);
     gl4duPushMatrix();
     if(_width > _height)
-        gl4duLookAtf(-eyesSapce_2+depX, 0.0f, depZ, eyeX, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
+        gl4duLookAtf(-DdepX, 0.0f, depZ, eyeX, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
     else
         gl4duLookAtf(0.0f, -eyesSapce_2, 0.0f, 0.0f, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
     scene(0);
@@ -740,7 +751,7 @@ static void stereo(GLfloat w, GLfloat h, GLfloat dw, GLfloat dh) {
     glViewport(dw, dh, w, h);
     gl4duPushMatrix();
     if(_width > _height)
-        gl4duLookAtf( eyesSapce_2+depX, 0.0f, depZ, eyeX, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
+        gl4duLookAtf( DdepX, 0.0f, depZ, eyeX, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
     else
         gl4duLookAtf(0.0f,  eyesSapce_2, 0.0f, 0.0f, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
     scene(1);
@@ -750,6 +761,8 @@ static void stereo(GLfloat w, GLfloat h, GLfloat dw, GLfloat dh) {
 int alea(int a, int b){
     return rand()%(b-a) +a;
 }
+
+
 
 static void draw(void) {
     glUseProgram(_program);
@@ -792,7 +805,7 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_gyro(JNIEnv * env, job
     angleX+=x;
     eyeX=sin(angleX*M_PI);*/
 //eyeX = (int)x;
-eyeY = (int)y*2;
+eyeY = -(int)y;
     //depX+=y;
 
 }
