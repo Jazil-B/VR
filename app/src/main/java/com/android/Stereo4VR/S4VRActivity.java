@@ -31,17 +31,18 @@ public class S4VRActivity extends Activity implements SensorEventListener{
     S4VRView mView;
     SensorManager sensorManager;
     Sensor sensor;
-
     public MediaPlayer backgroundMusic;
-    //public MediaPlayer wolfMusic;
-    //public MediaPlayer owlMusic;
+    static MediaPlayer wolfMusic;
+    static MediaPlayer owlMusic;
+    static Time temps = new Time();
+
 
     public boolean on = true;
 
     @Override protected void onCreate(Bundle icicle) {
 
-        long start = System.currentTimeMillis();
-        int temps = 5;
+        //long start = System.currentTimeMillis();
+       // int temps = 5;
 
         super.onCreate(icicle);
         mView = new S4VRView(getApplication(), getAssets());
@@ -51,18 +52,27 @@ public class S4VRActivity extends Activity implements SensorEventListener{
        // sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
         backgroundMusic = MediaPlayer.create(this, R.raw.creepy_ambient);
-        /*wolfMusic = MediaPlayer.create(this, R.raw.wolf);
-        owlMusic = MediaPlayer.create(this, R.raw.owl);*/
+        wolfMusic = MediaPlayer.create(this, R.raw.wolf);
+        owlMusic = MediaPlayer.create(this, R.raw.owl);
 
         backgroundMusic.start();
         backgroundMusic.setLooping(true);
 
+        temps.start();
 
-        /*if (System.currentTimeMillis() > (start + (500 * temps))){
-            owlMusic.start();
-            start = System.currentTimeMillis();
-        }*/
 
+
+
+    }
+
+    void active_chouette(){
+        owlMusic.start();
+
+    }
+
+
+    void active_loup(){
+        wolfMusic.start();
 
     }
 
