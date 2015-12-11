@@ -107,7 +107,7 @@ public class S4VRActivity extends Activity implements SensorEventListener{
             float y = event.values[2];
             float z = event.values[1];
 
-           // System.out.println("X : " + (int) x + " Y : " + (int) y + " Z : " + (int) z );
+            System.out.println("X : " + (int) x + " Y : " + (int) y + " Z : " + (int) z );
             S4VRLib.gyro(x,y,z);
 
 

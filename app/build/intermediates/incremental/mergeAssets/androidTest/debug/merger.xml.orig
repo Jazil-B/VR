@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<<<<<<< HEAD
+<merger version="3"><dataSet config="main"><source path="/Users/jazz/Desktop/Vr/app/src/androidTest/assets"/></dataSet></merger>
+=======
+<merger version="3"><dataSet config="main"><source path="/Users/jazz/Desktop/projetVr/GearVR/app/src/androidTest/assets"/></dataSet></merger>
+>>>>>>> 159d34662ca5879581efd173266a42526ee40a03

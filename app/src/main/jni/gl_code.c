@@ -27,7 +27,9 @@ static GLuint _myTextureHandle;
 static GLuint _pause = 0;
 static GLfloat _width = 1.0f, _height = 1.0f;
 static GLfloat _ratio_x = 1.0f, _ratio_y = 1.0f;
-static GLfloat Taille_map = 500.0f, depX=0.0f , depZ=-420.0f,eyeX=0.0f,eyeY=0.0f,eyeZ=0.0f,  angleX=0.0f,angleY=0.0f,angleZ=0.0f, DdepX;
+static GLfloat Taille_map = 500.0f, depX=0.0f , depZ=-350.0f,eyeX=0.0f,eyeY=0.0f,eyeZ=0.0f,
+        angleX=0.0f,angleY=0.0f,angleZ=0.0f, DdepX, pas_monster=10.0f,L_arbre=4.0f,H_arbre=10.0f;
+static int tempsPrecedent = 0, tempsActuel = 0,stop=0;
 
 typedef struct
 {
@@ -65,6 +67,7 @@ static GLint loadTexture(const GLchar *filename) {
     GLint idTexture = 0;
 
     AssetRessource assetRessource = openAsset(filename);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_RWops *rw = SDL_RWFromMem(assetRessource.buffer, assetRessource.size);
     closeAsset(assetRessource);
     SDL_Surface *image = IMG_Load_RW(rw, 1);
@@ -105,7 +108,7 @@ static void reshape_one_view_port(int w, int h) {
 
 static void reshape(int w, int h) {
     const GLfloat minEyeDist = 12.0f; /* on prend des centimètres */
-    const GLfloat maxEyeDist = 70.0f; /* 100 mètres */
+    const GLfloat maxEyeDist = 1000.0f; /* 100 mètres 70*/
     const GLfloat nearSide = minEyeDist * 0.423f * 2.0f; /* pour une ouverture centrée horizontale de 50°, 2 * (sin(25°) ~ 0.423) */
     const GLfloat nearSide_2 = nearSide / 2.0f;
     if((_width = w) > (_height = h)) {
@@ -139,8 +142,8 @@ static int init(const char * vs, const char * fs) {
     _vTextureHandle = glGetAttribLocation(_program, "vTexture");
     _vNormalHandle = glGetAttribLocation(_program, "vNormal");
     _myTextureHandle = glGetAttribLocation(_program, "myTexture");
-    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-    glEnable(GL_DEPTH_TEST);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+   // glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     gl4duGenMatrix(GL_FLOAT, "projmat");
@@ -149,6 +152,35 @@ static int init(const char * vs, const char * fs) {
     return 1;
 }
 
+static void IA_monster(){
+    float dist_z_plus,dist_z_moins,dist_x_plus,dist_x_moins;
+
+    dist_z_plus=abs(depZ-(_MonstreModel->position.z+pas_monster));
+    dist_z_moins=abs(depZ-(_MonstreModel->position.z-pas_monster));
+
+    dist_x_plus=abs(DdepX-(_MonstreModel->position.x+pas_monster));
+    dist_x_moins=abs(DdepX-(_MonstreModel->position.x-pas_monster));
+
+    if(dist_z_moins<dist_z_plus){
+        _MonstreModel->position.z-=pas_monster;
+    }else{
+        _MonstreModel->position.z+=pas_monster;
+    }
+
+    if(dist_x_moins<dist_x_plus){
+        _MonstreModel->position.x-=pas_monster;
+    }else{
+        _MonstreModel->position.x+=pas_monster;
+    }
+}
+
+int collision(float x,float z){
+
+    if(x-L_arbre<DdepX && DdepX<x+L_arbre && z-L_arbre<depZ && depZ<z+L_arbre){
+        return 1;
+    }
+    return 0;
+}
 
 static Model *createSkybox(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textureRepeat)
 {
@@ -200,47 +232,47 @@ static Model *createSkybox(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat tex
             };
     GLfloat gTriangleTextures[] =
             {
-                    1.0f, 0.25f,
-                    0.75f, 0.25f,
-                    1.0f, 0.75f,
-                    1.0f, 0.75f,
-                    0.75f, 0.25f,
-                    0.75f, 0.75f,
+                    1.0f, 0.33f,
+                    0.75f, 0.33f,
+                    1.0f, 0.66f,
+                    1.0f, 0.66f,
+                    0.75f, 0.33f,
+                    0.75f, 0.66f,
 
-                    0.75f, 0.25f,
-                    0.50f, 0.25f,
-                    0.75f, 0.75f,
-                    0.75f, 0.75f,
-                    0.50f, 0.25f,
-                    0.50f, 0.75f,
+                    0.75f, 0.33f,
+                    0.50f, 0.33f,
+                    0.75f, 0.66f,
+                    0.75f, 0.66f,
+                    0.50f, 0.33f,
+                    0.50f, 0.66f,
 
-                    0.25f, 0.25f,
-                    0.50f, 0.25f,
-                    0.25f, 0.75f,
-                    0.25f, 0.75f,
-                    0.50f, 0.25f,
-                    0.50f, 0.75f,
+                    0.25f, 0.33f,
+                    0.50f, 0.33f,
+                    0.25f, 0.66f,
+                    0.25f, 0.66f,
+                    0.50f, 0.33f,
+                    0.50f, 0.66f,
 
-                    0.0f, 0.25f,
-                    0.25f, 0.25f,
-                    0.0f, 0.75f,
-                    0.0f, 0.75f,
-                    0.25f, 0.25f,
-                    0.25f, 0.75f,
+                    0.0f, 0.33f,
+                    0.25f, 0.33f,
+                    0.0f, 0.66f,
+                    0.0f, 0.66f,
+                    0.25f, 0.33f,
+                    0.25f, 0.66f,
 
                     0.25f, 0.0f,
                     0.50f, 0.0f,
-                    0.25f, 0.25f,
-                    0.25f, 0.25f,
+                    0.25f, 0.33f,
+                    0.25f, 0.33f,
                     0.50f, 0.0f,
-                    0.50f, 0.25f,
+                    0.50f, 0.33f,
 
                     0.25f, 1.0f,
                     0.50f, 1.0f,
-                    0.25f, 0.75f,
-                    0.25f, 0.75f,
+                    0.25f, 0.66f,
+                    0.25f, 0.66f,
                     0.50f, 1.0f,
-                    0.50f, 0.75f,
+                    0.50f, 0.66f,
             };
     GLfloat gTriangleNormales[] =
             {
@@ -657,6 +689,13 @@ static void displayModel(Model *amodel, GLuint texture)
 {
     GLfloat mat[16];
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc( GL_LEQUAL );
+    glDepthMask(GL_TRUE);
+    glClearDepthf(1.0f);
+
+   /* glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);*/
 
     glVertexAttribPointer(_vPositionHandle, 3, GL_FLOAT, GL_FALSE, 0, amodel->gTriangleVertices);
     glEnableVertexAttribArray(_vPositionHandle);
@@ -697,7 +736,8 @@ static void scene(int duplicate) {
     GLfloat lum_pos[3] = {0.0f, 0.0f, -20.0f};
     static float r1 = 0, r2 = 0, r3 = 0;
     static float cpt=0;
-    glEnable(GL_DEPTH_TEST);
+
+   // glEnable(GL_DEPTH_TEST);
 //    glEnable(GL_CULL_FACE);
 
     /* Matrice du Model */
@@ -708,6 +748,13 @@ static void scene(int duplicate) {
 
     _MonstreModel->position.y = sin(cpt);
 
+    tempsActuel = SDL_GetTicks();
+    if (tempsActuel - tempsPrecedent > 1000) /* Si 30 ms se sont écoulées */
+    {
+        IA_monster();
+        tempsPrecedent = tempsActuel; /* Le temps "actuel" devient le temps "precedent" pour nos futurs calculs */
+    }
+
    /* if(cpt%2==0){
         _MonstreTexture = loadTexture("monster1.png");
     }else{
@@ -717,12 +764,17 @@ static void scene(int duplicate) {
     displayModel(_skyboxModel, _skyboxTexture);
     displayModel(_solModel, _solTexture);
     displayModel(_MonstreModel, _MonstreTexture);
+
     for(int i = 0;i<NBARBRE;i++) {
         _arbreModel[i]->rotation.y = r2;
-        if(distance(_arbreModel[i]->position.x,_arbreModel[i]->position.z)<=80.0) {
+        if(distance(_arbreModel[i]->position.x,_arbreModel[i]->position.z)<=100.0) {
+            if(collision(_arbreModel[i]->position.x,_arbreModel[i]->position.z)==1){
+                stop=1;
+            }
             displayModel(_arbreModel[i], _arbreTexture[i]);
         }
     }
+
     if(!_pause && !duplicate) {
         r1 += 0.01;
         r2 += 1;
@@ -742,16 +794,22 @@ static void stereo(GLfloat w, GLfloat h, GLfloat dw, GLfloat dh) {
     glViewport(0, 0, w, h);
     gl4duPushMatrix();
     if(_width > _height)
-        gl4duLookAtf(-DdepX, 0.0f, depZ, eyeX, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
+        gl4duLookAtf(-eyesSapce_2+depX, 0.0f, depZ, eyeX, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
     else
         gl4duLookAtf(0.0f, -eyesSapce_2, 0.0f, 0.0f, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
+
+    gl4duRotatef(eyeY,1,0,0); //la scène est tournée autour de l'axe Y
+
     scene(0);
     gl4duBindMatrix("vmat");
+
+    //gl4duRotatef(_angleZ,0,0,1);
+
     gl4duPopMatrix();
     glViewport(dw, dh, w, h);
     gl4duPushMatrix();
     if(_width > _height)
-        gl4duLookAtf( DdepX, 0.0f, depZ, eyeX, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
+        gl4duLookAtf( DdepX, 0.0f, depZ, eyeX, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
     else
         gl4duLookAtf(0.0f,  eyesSapce_2, 0.0f, 0.0f, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
     scene(1);
@@ -768,7 +826,8 @@ static void draw(void) {
     glUseProgram(_program);
     glClear(GL_COLOR_BUFFER_BIT |  GL_DEPTH_BUFFER_BIT);
     if(_width > _height)
-        stereo(_width / 2.0f, _height, _width / 2.0f, 0.0f);
+        //stereo(_width / 2.0f, _height, _width / 2.0f, 0.0f); //Version Vr
+    stereo(_width, _height, _width , 0.0f);                    //Version normal
     else
         stereo(_width, _height / 2.0f, 0.0f, _height / 2.0f);
 }
@@ -793,10 +852,17 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_click(JNIEnv * env, jo
     _pause = !_pause;
 }
 
-JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_event(JNIEnv * env, jobject obj, jint x, jint z) {
+JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_event(JNIEnv * env, jobject obj, jint x_left, jint z_up, jint x_right, jint z_down) {
     //_pause = !_pause;
-    depX+=x;
-    depZ+=z;
+    if(stop==0){
+        depX+=x_right;
+        depZ+=z_up;
+        depX-=x_left;
+        depZ-=z_down;
+    }else{
+        depZ-=z_down;
+        stop=0;
+    }
 }
 
 JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_gyro(JNIEnv * env, jobject obj, jfloat x, jfloat y, jfloat z) {
@@ -805,8 +871,11 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_gyro(JNIEnv * env, job
     angleX+=x;
     eyeX=sin(angleX*M_PI);*/
 //eyeX = (int)x;
-eyeY = -(int)y;
+    eyeY = (int)y;
     //depX+=y;
+
+
+
 
 }
 
@@ -848,7 +917,7 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_initAssets(JNIEnv * en
 jniEnv = env;
 jniAssetManager = assetManager;
 
-_skyboxTexture = loadTexture("skybox.png");
+_skyboxTexture = loadTexture("skybox.jpg");
 _skyboxModel = createSkybox(500.0f, 500.0f, 500.0f, 1.0f);
 
 _solTexture = loadTexture("sol2.jpg");
@@ -868,7 +937,7 @@ _skyboxModel->rotation.x = 180;
 
 _solModel->position.y = -7;
 _solModel->rotation.x = -90;
-
+_solModel->rotation.y = 180;
 /*_solModel = createPlan(10, 10, 1.0f);
 _solModel->position.z = -10;
 _solModel->rotation.x = -95;*/
@@ -891,7 +960,7 @@ break;
 }
 
 //_arbreTexture[i] = loadTexture("arbre2.png");
-_arbreModel[i] = createArbre(2.0f, 5.0f, 2.0f, 1.0f);
+_arbreModel[i] = createArbre(L_arbre, H_arbre, L_arbre, 1.0f);//L_arbre=2.0f  H_arbre=5.0f
 
 _arbreModel[i]->position.z = alea(-(Taille_map-2),(Taille_map-2));
 _arbreModel[i]->position.x = alea(-(Taille_map-2),(Taille_map-2));

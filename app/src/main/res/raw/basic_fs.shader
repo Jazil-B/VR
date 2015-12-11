@@ -20,11 +20,11 @@ vec4 calcLight(vec4 diffColor, vec4 specColor, vec3 N, vec3 L, vec3 V, float shi
 void main() {
 
     const vec4 whiteColor = vec4(1, 1, 1, 1);
-    const float density = 0.005;
+    const float density = 0.001;
     const float LOG2 = 1.442695;
 
     // Permet d'avoir la distance camera / pixel
-    float fogDistance = (gl_FragCoord.z / gl_FragCoord.w)*4.0;
+    float fogDistance = ((gl_FragCoord.z -20.0)/ gl_FragCoord.w);
 
     vec4 light = calcLight(whiteColor, whiteColor, out_vNormal, out_vLight, out_vView, 5.0);
 
@@ -34,13 +34,12 @@ void main() {
     //brouillard + lumiere
     //gl_FragColor = mix(texture2D(myTexture, out_texCoord) * light, vec4(0.5, 0.5, 0.5, 1.0), fogFactor);
 
+    // Décommente si tu veux sans le brouillard
+    //gl_FragColor = texture2D(myTexture, out_texCoord)*light;
+
     //brouillard
    gl_FragColor = mix(texture2D(myTexture, out_texCoord), vec4(0.5, 0.5, 0.5, 1.0), fogFactor);
 
     // Décommente si tu veux sans le brouillard - lumiere
-    //gl_FragColor = texture2D(myTexture, out_texCoord) * light;
-
-    // Décommente si tu veux sans le brouillard
-    //gl_FragColor = texture2D(myTexture, out_texCoord)*light;
-
+    gl_FragColor = texture2D(myTexture, out_texCoord) ;
 }
