@@ -27,7 +27,7 @@ static GLuint _myTextureHandle;
 static GLuint _pause = 0;
 static GLfloat _width = 1.0f, _height = 1.0f;
 static GLfloat _ratio_x = 1.0f, _ratio_y = 1.0f;
-static GLfloat Taille_map = 500.0f, depX=0.0f , depZ=-420.0f,eyeX=0.0f,eyeY=0.0f,eyeZ=0.0f,
+static GLfloat Taille_map = 500.0f, depX=0.0f , depZ=-350.0f,eyeX=0.0f,eyeY=0.0f,eyeZ=0.0f,
         angleX=0.0f,angleY=0.0f,angleZ=0.0f, DdepX, pas_monster=10.0f,L_arbre=4.0f,H_arbre=10.0f;
 static int tempsPrecedent = 0, tempsActuel = 0,stop=0;
 
@@ -142,7 +142,7 @@ static int init(const char * vs, const char * fs) {
     _vTextureHandle = glGetAttribLocation(_program, "vTexture");
     _vNormalHandle = glGetAttribLocation(_program, "vNormal");
     _myTextureHandle = glGetAttribLocation(_program, "myTexture");
-    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
    // glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -232,47 +232,47 @@ static Model *createSkybox(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat tex
             };
     GLfloat gTriangleTextures[] =
             {
-                    1.0f, 0.25f,
-                    0.75f, 0.25f,
-                    1.0f, 0.75f,
-                    1.0f, 0.75f,
-                    0.75f, 0.25f,
-                    0.75f, 0.75f,
+                    1.0f, 0.33f,
+                    0.75f, 0.33f,
+                    1.0f, 0.66f,
+                    1.0f, 0.66f,
+                    0.75f, 0.33f,
+                    0.75f, 0.66f,
 
-                    0.75f, 0.25f,
-                    0.50f, 0.25f,
-                    0.75f, 0.75f,
-                    0.75f, 0.75f,
-                    0.50f, 0.25f,
-                    0.50f, 0.75f,
+                    0.75f, 0.33f,
+                    0.50f, 0.33f,
+                    0.75f, 0.66f,
+                    0.75f, 0.66f,
+                    0.50f, 0.33f,
+                    0.50f, 0.66f,
 
-                    0.25f, 0.25f,
-                    0.50f, 0.25f,
-                    0.25f, 0.75f,
-                    0.25f, 0.75f,
-                    0.50f, 0.25f,
-                    0.50f, 0.75f,
+                    0.25f, 0.33f,
+                    0.50f, 0.33f,
+                    0.25f, 0.66f,
+                    0.25f, 0.66f,
+                    0.50f, 0.33f,
+                    0.50f, 0.66f,
 
-                    0.0f, 0.25f,
-                    0.25f, 0.25f,
-                    0.0f, 0.75f,
-                    0.0f, 0.75f,
-                    0.25f, 0.25f,
-                    0.25f, 0.75f,
+                    0.0f, 0.33f,
+                    0.25f, 0.33f,
+                    0.0f, 0.66f,
+                    0.0f, 0.66f,
+                    0.25f, 0.33f,
+                    0.25f, 0.66f,
 
                     0.25f, 0.0f,
                     0.50f, 0.0f,
-                    0.25f, 0.25f,
-                    0.25f, 0.25f,
+                    0.25f, 0.33f,
+                    0.25f, 0.33f,
                     0.50f, 0.0f,
-                    0.50f, 0.25f,
+                    0.50f, 0.33f,
 
                     0.25f, 1.0f,
                     0.50f, 1.0f,
-                    0.25f, 0.75f,
-                    0.25f, 0.75f,
+                    0.25f, 0.66f,
+                    0.25f, 0.66f,
                     0.50f, 1.0f,
-                    0.50f, 0.75f,
+                    0.50f, 0.66f,
             };
     GLfloat gTriangleNormales[] =
             {
@@ -794,16 +794,22 @@ static void stereo(GLfloat w, GLfloat h, GLfloat dw, GLfloat dh) {
     glViewport(0, 0, w, h);
     gl4duPushMatrix();
     if(_width > _height)
-        gl4duLookAtf(-eyesSapce_2+depX, 0.0f, depZ, eyeX, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
+        gl4duLookAtf(-eyesSapce_2+depX, 0.0f, depZ, eyeX, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
     else
         gl4duLookAtf(0.0f, -eyesSapce_2, 0.0f, 0.0f, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
+
+    gl4duRotatef(eyeY,1,0,0); //la scène est tournée autour de l'axe Y
+
     scene(0);
     gl4duBindMatrix("vmat");
+
+    //gl4duRotatef(_angleZ,0,0,1);
+
     gl4duPopMatrix();
     glViewport(dw, dh, w, h);
     gl4duPushMatrix();
     if(_width > _height)
-        gl4duLookAtf( DdepX, 0.0f, depZ, eyeX, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
+        gl4duLookAtf( DdepX, 0.0f, depZ, eyeX, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
     else
         gl4duLookAtf(0.0f,  eyesSapce_2, 0.0f, 0.0f, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
     scene(1);
@@ -820,7 +826,8 @@ static void draw(void) {
     glUseProgram(_program);
     glClear(GL_COLOR_BUFFER_BIT |  GL_DEPTH_BUFFER_BIT);
     if(_width > _height)
-        stereo(_width / 2.0f, _height, _width / 2.0f, 0.0f);
+        //stereo(_width / 2.0f, _height, _width / 2.0f, 0.0f); //Version Vr
+    stereo(_width, _height, _width , 0.0f);                    //Version normal
     else
         stereo(_width, _height / 2.0f, 0.0f, _height / 2.0f);
 }
@@ -864,8 +871,11 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_gyro(JNIEnv * env, job
     angleX+=x;
     eyeX=sin(angleX*M_PI);*/
 //eyeX = (int)x;
-eyeY = (int)y;
+    eyeY = (int)y;
     //depX+=y;
+
+
+
 
 }
 
@@ -907,7 +917,7 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_initAssets(JNIEnv * en
 jniEnv = env;
 jniAssetManager = assetManager;
 
-_skyboxTexture = loadTexture("skybox.png");
+_skyboxTexture = loadTexture("skybox.jpg");
 _skyboxModel = createSkybox(500.0f, 500.0f, 500.0f, 1.0f);
 
 _solTexture = loadTexture("sol2.jpg");
