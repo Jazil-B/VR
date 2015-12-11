@@ -108,7 +108,7 @@ static void reshape_one_view_port(int w, int h) {
 
 static void reshape(int w, int h) {
     const GLfloat minEyeDist = 12.0f; /* on prend des centimètres */
-    const GLfloat maxEyeDist = 1000.0f; /* 100 mètres 70*/
+    const GLfloat maxEyeDist = 1200.0f; /* 100 mètres 70*/
     const GLfloat nearSide = minEyeDist * 0.423f * 2.0f; /* pour une ouverture centrée horizontale de 50°, 2 * (sin(25°) ~ 0.423) */
     const GLfloat nearSide_2 = nearSide / 2.0f;
     if((_width = w) > (_height = h)) {
@@ -794,11 +794,11 @@ static void stereo(GLfloat w, GLfloat h, GLfloat dw, GLfloat dh) {
     glViewport(0, 0, w, h);
     gl4duPushMatrix();
     if(_width > _height)
-        gl4duLookAtf(-eyesSapce_2+depX, 0.0f, depZ, eyeX, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
+        gl4duLookAtf(-eyesSapce_2+depX, 0.0f, depZ, eyeX, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
     else
         gl4duLookAtf(0.0f, -eyesSapce_2, 0.0f, 0.0f, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
 
-    gl4duRotatef(eyeY,1,0,0); //la scène est tournée autour de l'axe Y
+    //gl4duRotatef(eyeY,1,0,0); //la scène est tournée autour de l'axe Y
 
     scene(0);
     gl4duBindMatrix("vmat");
