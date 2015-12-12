@@ -14,7 +14,9 @@
 #define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, __FILE__, __VA_ARGS__)
 #define ALOGI(...) __android_log_print(ANDROID_LOG_INFO , __FILE__, __VA_ARGS__)
 
-#define NBARBRE 5000
+#define NBARBRE 2500
+#define NBCUBE 626
+
 #define ALPHA(x) (((x) >> 24) & 0xFF)
 #define RED(x)   (((x) >> 16) & 0xFF)
 #define GREEN(x) (((x) >>  8) & 0xFF)
@@ -27,9 +29,10 @@ static GLuint _myTextureHandle;
 static GLuint _pause = 0;
 static GLfloat _width = 1.0f, _height = 1.0f;
 static GLfloat _ratio_x = 1.0f, _ratio_y = 1.0f;
-static GLfloat Taille_map = 500.0f, depX=0.0f , depZ=-350.0f,eyeX=0.0f,eyeY=0.0f,eyeZ=0.0f,
-        angleX=0.0f,angleY=0.0f,angleZ=0.0f, DdepX, pas_monster=10.0f,L_arbre=4.0f,H_arbre=10.0f;
-static int tempsPrecedent = 0, tempsActuel = 0,stop=0;
+static GLfloat Taille_map = 500.0f, depX=-470.0f , depZ=-510.0f,eyeX=0.0f,eyeY=0.0f,eyeZ=0.0f,
+        angleX=0.0f,angleY=0.0f,angleZ=0.0f, DdepX=470.0f, pas_monster=10.0f,L_arbre=4.0f,H_arbre=10.0f, cube=20.0f;
+static int tempsPrecedent = 0, tempsActuel = 0,stop=0,taille_labi=25;
+static char maze[NBCUBE];
 
 typedef struct
 {
@@ -49,6 +52,8 @@ typedef struct
     GLsizei size;
 } Model;
 
+
+
 static GLint _skyboxTexture;
 static Model *_skyboxModel;
 
@@ -57,6 +62,12 @@ static Model *_solModel;
 
 static GLint _MonstreTexture;
 static Model *_MonstreModel;
+
+static GLint _cubeTexture[NBCUBE];
+static Model *_cubeModel[NBCUBE];
+
+static GLint _testTexture;
+static Model *_testModel;
 
 static GLint _arbreTexture[NBARBRE];
 static Model *_arbreModel[NBARBRE];
@@ -108,7 +119,7 @@ static void reshape_one_view_port(int w, int h) {
 
 static void reshape(int w, int h) {
     const GLfloat minEyeDist = 12.0f; /* on prend des centimètres */
-    const GLfloat maxEyeDist = 1200.0f; /* 100 mètres 70*/
+    const GLfloat maxEyeDist = 10000.0f; /* 100 mètres 70*/
     const GLfloat nearSide = minEyeDist * 0.423f * 2.0f; /* pour une ouverture centrée horizontale de 50°, 2 * (sin(25°) ~ 0.423) */
     const GLfloat nearSide_2 = nearSide / 2.0f;
     if((_width = w) > (_height = h)) {
@@ -135,6 +146,7 @@ static void reshape(int w, int h) {
 
 static int init(const char * vs, const char * fs) {
 
+    //maze = (char*)malloc(taille_labi * taille_labi * sizeof(char));
     _program = gl4droidCreateProgram(vs, fs);
     if (!_program)
         return 0;
@@ -172,6 +184,68 @@ static void IA_monster(){
     }else{
         _MonstreModel->position.x+=pas_monster;
     }
+}
+
+void CarveMaze(char *maze, int width, int height, int x, int y) {
+
+    int x1, y1;
+    int x2, y2;
+    int dx, dy;
+    int dir, count;
+
+    dir = rand() % 4;
+    count = 0;
+    while(count < 4) {
+        dx = 0; dy = 0;
+        switch(dir) {
+            case 0:  dx = 1;  break;
+            case 1:  dy = 1;  break;
+            case 2:  dx = -1; break;
+            default: dy = -1; break;
+        }
+        x1 = x + dx;
+        y1 = y + dy;
+        x2 = x1 + dx;
+        y2 = y1 + dy;
+        if(   x2 > 0 && x2 < width && y2 > 0 && y2 < height
+              && maze[y1 * width + x1] == 1 && maze[y2 * width + x2] == 1) {
+            maze[y1 * width + x1] = 0;
+            maze[y2 * width + x2] = 0;
+            x = x2; y = y2;
+            dir = rand() % 4;
+            count = 0;
+        } else {
+            dir = (dir + 1) % 4;
+            count += 1;
+        }
+    }
+
+}
+
+void GenerateMaze(char *maze, int width, int height) {
+
+    int x, y;
+
+    /* Initialize the maze. */
+    for(x = 0; x < width * height; x++) {
+        maze[x] = 1;
+    }
+    maze[1 * width + 1] = 0;
+
+    /* Seed the random number generator. */
+    srand(time(0));
+
+    /* Carve the maze. */
+    for(y = 1; y < height; y += 2) {
+        for(x = 1; x < width; x += 2) {
+            CarveMaze(maze, width, height, x, y);
+        }
+    }
+
+    /* Set up the entry and exit. */
+    maze[0 * width + 1] = 0;
+    maze[(height - 1) * width + (width - 2)] = 0;
+
 }
 
 int collision(float x,float z){
@@ -352,133 +426,210 @@ static Model *createSkybox(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat tex
 static Model *createCube(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textureRepeat)
 {
     Model *newModel = malloc(sizeof *newModel);
-
+    GLfloat  s2 = dimx;
     GLfloat gTriangleVertices[] =
             {
-                    -dimx, -dimy, dimz,
+
+                    -s2, s2*2, -s2,
+                    s2 , s2*2, -s2,
+                    -s2, s2*2,  s2,
+                    -s2, s2*2,  s2,
+                    s2 , s2*2, -s2,
+                    s2 , s2*2,  s2,
+
+                    /* 4 coordonnées de sommets */
+                    s2 ,s2*2,  s2,
+                    s2 , s2*2, -s2,
+                    s2 , 0,  s2,
+                    s2 , 0,  s2,
+                    s2 , s2*2, -s2,
+                    s2 , 0, -s2 ,
+
+                    /* 4 coordonnées de sommets */
+                    s2 , 0, -s2 ,
+                    s2 , s2*2, -s2,
+                    -s2, 0, -s2,
+                    -s2, 0, -s2,
+                    s2 , s2*2, -s2,
+                    -s2, s2*2, -s2,
+
+
+                    /* 4 coordonnées de sommets */
+                    -s2, s2*2, -s2,
+                    -s2, s2*2,  s2,
+                    -s2, 0, -s2,
+                    -s2, 0, -s2,
+                    -s2, s2*2,  s2,
+                    -s2, 0,  s2,
+
+
+                    /* 4 coordonnées de sommets */
+                    -s2, 0,  s2,
+                    -s2, s2*2,  s2,
+                    s2 , 0,  s2,
+                    s2 , 0,  s2,
+                    -s2, s2*2,  s2,
+                    s2 , s2*2,  s2,
+
+
+                   /* -dimx, -dimy, dimz,
                     dimx, -dimy, dimz,
                     -dimx, dimy, dimz,
-                   /* -dimx, dimy, dimz,
-                    dimx, -dimy, dimz,*/
+                    -dimx, dimy, dimz,
+                    dimx, -dimy, dimz,
                     dimx, dimy, dimz,
 
                     dimx, -dimy, dimz,
                     dimx, -dimy, -dimz,
                     dimx, dimy, dimz,
-                   /* dimx, dimy, dimz,
-                    dimx, -dimy, -dimz,*/
+                    dimx, dimy, dimz,
+                    dimx, -dimy, -dimz,
                     dimx, dimy, -dimz,
-
-                     dimx, -dimy, -dimz,
-                    -dimx, -dimy, -dimz,
-                    dimx, dimy, -dimz,
-                   /* -dimx, dimy, -dimz,
-                    dimx, -dimy, -dimz,*/
-                    -dimx, dimy, -dimz,
-
-                    -dimx, -dimy, -dimz,
-                    -dimx, -dimy, dimz,
-                    -dimx, dimy, -dimz,
-                   /* -dimx, dimy, dimz,
-                    -dimx, -dimy, -dimz,*/
-                    -dimx, dimy, dimz,
 
                     -dimx, -dimy, -dimz,
                     dimx, -dimy, -dimz,
+                    -dimx, dimy, -dimz,
+                    -dimx, dimy, -dimz,
+                    dimx, -dimy, -dimz,
+                    dimx, dimy, -dimz,
+
                     -dimx, -dimy, dimz,
-                   /* -dimx, -dimy, -dimz,
-                    dimx, -dimy, dimz,*/
+                    -dimx, -dimy, -dimz,
+                    -dimx, dimy, dimz,
+                    -dimx, dimy, dimz,
+                    -dimx, -dimy, -dimz,
+                    -dimx, dimy, -dimz,*/
+
+                  /*  -dimx, -dimy, dimz,
                     dimx, -dimy, dimz,
+                    -dimx, -dimy, -dimz,
+                    -dimx, -dimy, -dimz,
+                    dimx, -dimy, dimz,
+                    dimx, -dimy, -dimz,
 
                     -dimx, dimy, dimz,
                     dimx, dimy, dimz,
                     -dimx, dimy, -dimz,
-                 /*   -dimx, dimy, -dimz,
-                    dimx, dimy, dimz,*/
-                    dimx, dimy, -dimz,
+                    -dimx, dimy, -dimz,
+                    dimx, dimy, dimz,
+                    dimx, dimy, -dimz,*/
             };
-
-
-
     GLfloat gTriangleTextures[] =
             {
-
-                    0.0, 0.0f,
+                    0.0f, 0.0f,
                     1.0f, 0.0f,
                     0.0f, 1.0f,
-                    1.0f, 1.0f,
-
-                    0.0, 0.0f,
-                    1.0f, 0.0f,
                     0.0f, 1.0f,
-                    1.0f, 1.0f,
-
-                    0.0, 0.0f,
                     1.0f, 0.0f,
-                    0.0f, 1.0f,
-                    1.0f, 1.0f,
-
-                    0.0, 0.0f,
-                    1.0f, 0.0f,
-                    0.0f, 1.0f,
-                    1.0f, 1.0f,
-
-                    0.0, 0.0f,
-                    1.0f, 0.0f,
-                    0.0f, 1.0f,
-                    1.0f, 1.0f,
-
-                    0.0, 0.0f,
-                    1.0f, 0.0f,
-                    0.0f, 1.0f,
                     1.0f, 1.0f,
 
 
+                    /* 4 coordonnées de texture, une par sommet */
+                    0.0f, 0.0f,
+                    1.0f, 0.0f,
+                    0.0f, 1.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
+                    1.0f, 1.0f,
+
+
+                    /* 4 coordonnées de texture, une par sommet */
+
+                    1.0f, 1.0f,
+                    1.0f, 0.0f,
+                    0.0f, 1.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
+                    0.0f, 0.0f,
+
+                    /* 4 coordonnées de texture, une par sommet */
+                    0.0f, 0.0f,
+                    1.0f, 0.0f,
+                    0.0f, 1.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
+                    1.0f, 1.0f,
+
+                    /* 4 coordonnées de texture, une par sommet */
+                    1.0f, 1.0f,
+                    1.0f, 0.0f,
+                    0.0f, 1.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
+                    0.0f, 0.0f
+
+                /*    0.0f, 0.0f,
+                    1.0f, 0.0f,
+                    0.0f, 1.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
+                    1.0f, 1.0f,
+
+                    0.0f, 0.0f,
+                    1.0f, 0.0f,
+                    0.0f, 1.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
+                    1.0f, 1.0f,*/
             };
     GLfloat gTriangleNormales[] =
             {
-                    0.0f, 0.0f, 1.0f,
-                    0.0f, 0.0f, 1.0f,
-                    0.0f, 0.0f, 1.0f,
-                   /* 0.0f, 0.0f, 1.0f,
-                    0.0f, 0.0f, 1.0f,*/
-                    0.0f, 0.0f, 1.0f,
+                    /* 4 normales */
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
 
-                    1.0f, 0.0f, 0.0f,
-                    1.0f, 0.0f, 0.0f,
-                    1.0f, 0.0f, 0.0f,
-                    /*1.0f, 0.0f, 0.0f,
-                    1.0f, 0.0f, 0.0f,*/
-                    1.0f, 0.0f, 0.0f,
-
+                    /* 4 normales */
                     0.0f, 0.0f, -1.0f,
                     0.0f, 0.0f, -1.0f,
                     0.0f, 0.0f, -1.0f,
-                   /* 0.0f, 0.0f, -1.0f,
-                    0.0f, 0.0f, -1.0f,*/
+                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,
                     0.0f, 0.0f, -1.0f,
 
+                    /* 4 normales */
                     -1.0f, 0.0f, 0.0f,
                     -1.0f, 0.0f, 0.0f,
                     -1.0f, 0.0f, 0.0f,
-                   /* -1.0f, 0.0f, 0.0f,
-                    -1.0f, 0.0f, 0.0f,*/
+                    -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,
                     -1.0f, 0.0f, 0.0f,
 
+                    /* 4 normales */
+                    /* Normale a gere problemme de lumier les tecture de s affiche pas */
+                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, -1.0f,
+
+                    /* 4 normales */
+                    -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f,
+
+                /*    0.0f, -1.0f, 0.0f,
                     0.0f, -1.0f, 0.0f,
                     0.0f, -1.0f, 0.0f,
                     0.0f, -1.0f, 0.0f,
-                   /* 0.0f, -1.0f, 0.0f,
-                    0.0f, -1.0f, 0.0f,*/
+                    0.0f, -1.0f, 0.0f,
                     0.0f, -1.0f, 0.0f,
 
                     0.0f, 1.0f, 0.0f,
                     0.0f, 1.0f, 0.0f,
                     0.0f, 1.0f, 0.0f,
-                   /* 0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
                     0.0f, 1.0f, 0.0f,*/
-                    0.0f, 1.0f, 0.0f,
             };
+
 
     newModel->gTriangleVertices = malloc(sizeof gTriangleVertices);
     newModel->gTriangleTextures = malloc(sizeof gTriangleTextures);
@@ -504,8 +655,8 @@ static Model *createCube(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textu
     newModel->scale.y = 1;
     newModel->scale.z = 1;
 
-    newModel->drawType = GL_TRIANGLE_STRIP;
-    newModel->size = 24;
+    newModel->drawType = GL_TRIANGLES;
+    newModel->size = 24;//36
 
     return newModel;
 }
@@ -681,21 +832,14 @@ static void deleteModel(Model *aModel)
     free(aModel->gTriangleVertices);
     free(aModel->gTriangleTextures);
     free(aModel->gTriangleNormales);
-
+    free(maze);
     free(aModel);
 }
 
 static void displayModel(Model *amodel, GLuint texture)
 {
     GLfloat mat[16];
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc( GL_LEQUAL );
-    glDepthMask(GL_TRUE);
-    glClearDepthf(1.0f);
 
-   /* glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);*/
 
     glVertexAttribPointer(_vPositionHandle, 3, GL_FLOAT, GL_FALSE, 0, amodel->gTriangleVertices);
     glEnableVertexAttribArray(_vPositionHandle);
@@ -724,7 +868,6 @@ static void displayModel(Model *amodel, GLuint texture)
 
     gl4duSendMatrices();
     gl4duPopMatrix();
-
     glDrawArrays(amodel->drawType, 0, amodel->size);
 }
 
@@ -737,14 +880,16 @@ static void scene(int duplicate) {
     static float r1 = 0, r2 = 0, r3 = 0;
     static float cpt=0;
 
-   // glEnable(GL_DEPTH_TEST);
-//    glEnable(GL_CULL_FACE);
-
+  /*  glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+*/
     /* Matrice du Model */
     //lum_pos[0] = 10.0f * sin(M_PI * r3 / 180.0f);
     glUniform3fv(glGetUniformLocation(_program, "lum_pos"), 1, lum_pos);
 
     _skyboxModel->rotation.y = r1;
+
+    _testModel->rotation.y = r1*100;
 
     _MonstreModel->position.y = sin(cpt);
 
@@ -764,16 +909,35 @@ static void scene(int duplicate) {
     displayModel(_skyboxModel, _skyboxTexture);
     displayModel(_solModel, _solTexture);
     displayModel(_MonstreModel, _MonstreTexture);
+   // displayModel(_testModel, _testTexture);
 
-    for(int i = 0;i<NBARBRE;i++) {
+    //Version labyrinthe
+    for(int y = 0; y <= taille_labi; y++) {
+        for(int x = 0; x < taille_labi; x++) {
+            if(maze[y * taille_labi + x]==1) {
+
+                    _cubeModel[y+x]->position.z = (y*(cube*2))-Taille_map+20;
+                _cubeModel[y+x]->position.x = (x*(cube*2))-Taille_map+20;
+                _cubeModel[y+x]->position.y = -5;
+               // if(distance(_cubeModel[y+x]->position.x,_cubeModel[y+x]->position.z)<=100.0) {
+
+                    displayModel(_cubeModel[y + x], _cubeTexture[y + x]);
+               // }
+            }
+        }
+    }
+
+
+    //Version foret
+/*    for(int i = 0;i<NBARBRE;i++) {
         _arbreModel[i]->rotation.y = r2;
         if(distance(_arbreModel[i]->position.x,_arbreModel[i]->position.z)<=100.0) {
             if(collision(_arbreModel[i]->position.x,_arbreModel[i]->position.z)==1){
                 stop=1;
             }
-            displayModel(_arbreModel[i], _arbreTexture[i]);
+           // displayModel(_arbreModel[i], _arbreTexture[i]);
         }
-    }
+    }*/
 
     if(!_pause && !duplicate) {
         r1 += 0.01;
@@ -798,18 +962,17 @@ static void stereo(GLfloat w, GLfloat h, GLfloat dw, GLfloat dh) {
     else
         gl4duLookAtf(0.0f, -eyesSapce_2, 0.0f, 0.0f, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
 
-    //gl4duRotatef(eyeY,1,0,0); //la scène est tournée autour de l'axe Y
+   // gl4duRotatef(eyeY,1,0,0); //la scène est tournée autour de l'axe Y pour voir du dessus
 
     scene(0);
     gl4duBindMatrix("vmat");
 
-    //gl4duRotatef(_angleZ,0,0,1);
 
     gl4duPopMatrix();
     glViewport(dw, dh, w, h);
     gl4duPushMatrix();
     if(_width > _height)
-        gl4duLookAtf( DdepX, 0.0f, depZ, eyeX, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
+        gl4duLookAtf( DdepX, 0.0f, depZ, eyeX, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
     else
         gl4duLookAtf(0.0f,  eyesSapce_2, 0.0f, 0.0f, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
     scene(1);
@@ -826,8 +989,8 @@ static void draw(void) {
     glUseProgram(_program);
     glClear(GL_COLOR_BUFFER_BIT |  GL_DEPTH_BUFFER_BIT);
     if(_width > _height)
-        //stereo(_width / 2.0f, _height, _width / 2.0f, 0.0f); //Version Vr
-    stereo(_width, _height, _width , 0.0f);                    //Version normal
+        stereo(_width / 2.0f, _height, _width / 2.0f, 0.0f); //Version Vr
+        //stereo(_width, _height, _width , 0.0f);                    //Version normal
     else
         stereo(_width, _height / 2.0f, 0.0f, _height / 2.0f);
 }
@@ -926,6 +1089,12 @@ _solModel = createPlan(Taille_map, Taille_map, 50.0f);
 _MonstreTexture = loadTexture("monster1.png");
 _MonstreModel = createArbre(5.0f, 3.0f,5.0f, 1.0f);
 
+_testTexture = loadTexture("sol.jpg");
+_testModel = createCube(2.0f, 2.0f,2.0f, 1.0f);
+
+_testModel->position.z = -450;
+_testModel->position.x = -3;
+_testModel->position.y = 3;
 
 _MonstreModel->position.z = 400;
 _MonstreModel->position.x = -3;
@@ -942,7 +1111,19 @@ _solModel->rotation.y = 180;
 _solModel->position.z = -10;
 _solModel->rotation.x = -95;*/
 
+
+for(int i = 0;i<NBCUBE;i++){
+_cubeTexture[i] = loadTexture("sol.jpg");
+_cubeModel[i] = createCube(cube, cube,cube, 1.0f);
+}
+
+/*
 for(int i = 0;i<NBARBRE;i++){
+
+
+
+_cubeTexture[i] = loadTexture("sol.jpg");
+_cubeModel[i] = createCube(cube, cube,cube, cube);
 
 switch(i%3){
 
@@ -966,9 +1147,10 @@ _arbreModel[i]->position.z = alea(-(Taille_map-2),(Taille_map-2));
 _arbreModel[i]->position.x = alea(-(Taille_map-2),(Taille_map-2));
 //_arbreModel[i]->rotation.z = -90;
 }
+*/
 
+GenerateMaze(maze, taille_labi, taille_labi);
 
-
-_arbreModel[49]->position.z = -400;
-_arbreModel[49]->position.x = -3;
+/*_arbreModel[49]->position.z = -400;
+_arbreModel[49]->position.x = -3;*/
 }
