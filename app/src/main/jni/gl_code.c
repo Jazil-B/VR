@@ -14,7 +14,7 @@
 #define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, __FILE__, __VA_ARGS__)
 #define ALOGI(...) __android_log_print(ANDROID_LOG_INFO , __FILE__, __VA_ARGS__)
 
-#define NBARBRE 5000
+#define NBARBRE 50
 #define ALPHA(x) (((x) >> 24) & 0xFF)
 #define RED(x)   (((x) >> 16) & 0xFF)
 #define GREEN(x) (((x) >>  8) & 0xFF)
@@ -28,8 +28,10 @@ static GLuint _pause = 0;
 static GLfloat _width = 1.0f, _height = 1.0f;
 static GLfloat _ratio_x = 1.0f, _ratio_y = 1.0f;
 static GLfloat Taille_map = 500.0f, depX=0.0f , depZ=-350.0f,eyeX=0.0f,eyeY=0.0f,eyeZ=0.0f,
-        angleX=0.0f,angleY=0.0f,angleZ=0.0f, DdepX, pas_monster=10.0f,L_arbre=4.0f,H_arbre=10.0f;
+        angleX=0.0f,angleY=0.0f,angleZ=0.0f, DdepX, pas_monster=10.0f,L_arbre=4.0f,H_arbre=10.0f, lx, lz;
 static int tempsPrecedent = 0, tempsActuel = 0,stop=0;
+
+
 
 typedef struct
 {
@@ -794,7 +796,7 @@ static void stereo(GLfloat w, GLfloat h, GLfloat dw, GLfloat dh) {
     glViewport(0, 0, w, h);
     gl4duPushMatrix();
     if(_width > _height)
-        gl4duLookAtf(-eyesSapce_2+depX, 0.0f, depZ, eyeX, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
+        gl4duLookAtf(-eyesSapce_2+depX, 0.0f, depZ, depX+lx, 0.0f, depZ+lz, 0.0f, 1.0f, 0.0f);
     else
         gl4duLookAtf(0.0f, -eyesSapce_2, 0.0f, 0.0f, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
 
@@ -809,7 +811,7 @@ static void stereo(GLfloat w, GLfloat h, GLfloat dw, GLfloat dh) {
     glViewport(dw, dh, w, h);
     gl4duPushMatrix();
     if(_width > _height)
-        gl4duLookAtf( DdepX, 0.0f, depZ, eyeX, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f);
+        gl4duLookAtf( DdepX, 0.0f, depZ, depX+lx, 0.0f, depZ+lz, 0.0f, 1.0f, 0.0f);
     else
         gl4duLookAtf(0.0f,  eyesSapce_2, 0.0f, 0.0f, eyeY, -30.0f, 0.0f, 1.0f, 0.0f);
     scene(1);
@@ -852,17 +854,18 @@ JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_click(JNIEnv * env, jo
     _pause = !_pause;
 }
 
-JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_event(JNIEnv * env, jobject obj, jint x_left, jint z_up, jint x_right, jint z_down) {
-    //_pause = !_pause;
-    if(stop==0){
-        depX+=x_right;
-        depZ+=z_up;
-        depX-=x_left;
-        depZ-=z_down;
-    }else{
-        depZ-=z_down;
-        stop=0;
-    }
+
+
+JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_trans(JNIEnv * env, jobject obj, jfloat x, jfloat z){
+
+    depX = x;
+    depZ = z;
+}
+
+JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_rot (JNIEnv * env, jobject obj, jfloat x_left, jfloat x_right){
+
+    lx = x_left;
+    lz = x_right;
 }
 
 JNIEXPORT void JNICALL Java_com_android_Stereo4VR_S4VRLib_gyro(JNIEnv * env, jobject obj, jfloat x, jfloat y, jfloat z) {

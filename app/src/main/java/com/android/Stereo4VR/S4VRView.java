@@ -71,8 +71,7 @@ import javax.microedition.khronos.opengles.GL10;
  *   specification to eglChooseConfig() that has the attribute
  *   EGL10.ELG_RENDERABLE_TYPE containing the EGL_OPENGL_ES2_BIT flag
  *   set. See ConfigChooser class definition below.
- *
- * - The class must select the surface's format, then choose an EGLConfig
+ *ss must select the surface's format, then choose an EGLConfig
  *   that matches it exactly (with regards to red/green/blue/alpha channels
  *   bit depths). Failure to do so would result in an EGL_BAD_MATCH error.
  */
@@ -83,6 +82,13 @@ class S4VRView extends GLSurfaceView {
     private static String _fshader = null;
     private AssetManager _assetManager;
 
+    static float angle = 0.0f;
+    static float x = 0.0f;
+    static float z = 5.0f;
+    static float lx = 0.0f;
+    static float lz = -1.0f;
+
+    static float fraction = 1.0f;
 
     private OnClickListener _ocl = new OnClickListener() {
         @Override
@@ -98,39 +104,62 @@ class S4VRView extends GLSurfaceView {
                 switch (keyCode) {
 
 
-                    case KeyEvent.KEYCODE_DPAD_UP:
+                    /*case KeyEvent.KEYCODE_DPAD_UP:
                         System.out.println("up key pressed");
-                        S4VRLib.event(0, 1,0,0);
+                        //S4VRLib.event_trans(0, 1);
+                        x += lx * fraction;
+                        z += lz * fraction;
+                        S4VRLib.event_trans(x, z);
                         return true;
                     case KeyEvent.KEYCODE_DPAD_DOWN:
                         System.out.println("down key pressed");
-                        S4VRLib.event(0, 0,0,1);
+                        //S4VRLib.event_trans(0, 0);
+                        x -= lx * fraction;
+                        z -= lz * fraction;
+                        S4VRLib.event_trans(x, z);
                         return true;
                     case KeyEvent.KEYCODE_DPAD_LEFT:
                         System.out.println("left key pressed");
-                        S4VRLib.event(1, 0,0,0);
+                        //S4VRLib.event(1, 0,0,0);
+                        angle -= 0.01f;
+                        /*lx = (float) Math.sin(Math.toRadians(angle));
+                        lz = -(float) Math.cos(Math.toRadians(angle));
+                        S4VRLib.rot(angle);
                         return true;
                     case KeyEvent.KEYCODE_DPAD_RIGHT:
                         System.out.println("right key pressed");
-                        S4VRLib.event(0,0,1,0);
-                        return true;
+                        angle += 10f;
+                        /*lx = (float) Math.sin(Math.toRadians(angle));
+                        lz = -(float) Math.cos(Math.toRadians(angle));
+                        S4VRLib.rot(angle);
+                        return true; */
                     case KeyEvent.KEYCODE_W:
                         System.out.println("up key pressed");
-                        S4VRLib.event(0, 1,0,0);
+                        Log.d("bla bla", " x " + x + " z " + z);
+                        x += lx * fraction;
+                        z += lz * fraction;
+                        S4VRLib.trans(x, z);
                         return true;
                     case KeyEvent.KEYCODE_S:
                         System.out.println("down key pressed");
-                        S4VRLib.event(0, 0,0,1);
+                        x -= lx * fraction;
+                        z -= lz * fraction;
+                        S4VRLib.trans(x, z);
+                        return true;
+                    case KeyEvent.KEYCODE_D:
+                        System.out.println("left key pressed");
+                        angle -= 1.0f;
+                        lx = (float) Math.sin(Math.toRadians(angle));
+                        lz = -(float) Math.cos(Math.toRadians(angle));
+                        S4VRLib.rot(lx, lz);
                         return true;
                     case KeyEvent.KEYCODE_A:
-                        System.out.println("left key pressed");
-                        S4VRLib.event(1, 0,0,0);
-                        return true;
-                    case KeyEvent.KEYCODE_L:
                         System.out.println("right key pressed");
-                        S4VRLib.event(0,0,1,0);
+                        angle += 1.0f;
+                        lx = (float) Math.sin(Math.toRadians(angle));
+                        lz = -(float) Math.cos(Math.toRadians(angle));
+                        S4VRLib.rot(lx, lz);
                         return true;
-
 
 
                 }
