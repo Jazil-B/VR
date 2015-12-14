@@ -34,17 +34,17 @@ void main() {
     //brouillard + lumiere
     //gl_FragColor = mix(texture2D(myTexture, out_texCoord) * light, vec4(0.5, 0.5, 0.5, 1.0), fogFactor);
 
-    // Décommente si tu veux sans le brouillard
+    // sans le brouillard
     //gl_FragColor = texture2D(myTexture, out_texCoord)*light;
 
     //brouillard
    gl_FragColor = mix(texture2D(myTexture, out_texCoord), vec4(0.5, 0.5, 0.5, 1.0), fogFactor);
 
-    // Décommente si tu veux sans le brouillard - lumiere
+    //  sans le brouillard + lumiere
     //gl_FragColor = texture2D(myTexture, out_texCoord) * light;
 
-    // Décommente si tu veux sans le brouillard
-    //gl_FragColor = texture2D(myTexture, out_texCoord)*light;
-
+    //  sans le brouillard
     gl_FragColor = texture2D(myTexture, out_texCoord) ;
+
+
 }

@@ -29,7 +29,7 @@ static GLuint _myTextureHandle;
 static GLuint _pause = 0;
 static GLfloat _width = 1.0f, _height = 1.0f;
 static GLfloat _ratio_x = 1.0f, _ratio_y = 1.0f;
-static GLfloat Taille_map = 500.0f, depX=-470.0f , depZ=-510.0f,eyeX=0.0f,eyeY=0.0f,eyeZ=0.0f,
+static GLfloat Taille_map = 500.0f, depX=0.0f , depZ=-510.0f,eyeX=0.0f,eyeY=0.0f,eyeZ=0.0f,
         angleX=0.0f,angleY=0.0f,angleZ=0.0f, DdepX=470.0f, pas_monster=10.0f,L_arbre=4.0f,H_arbre=10.0f, cube=20.0f;
 static int tempsPrecedent = 0, tempsActuel = 0,stop=0,taille_labi=25;
 static char maze[NBCUBE];
@@ -155,7 +155,7 @@ static int init(const char * vs, const char * fs) {
     _vNormalHandle = glGetAttribLocation(_program, "vNormal");
     _myTextureHandle = glGetAttribLocation(_program, "myTexture");
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-   // glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     gl4duGenMatrix(GL_FLOAT, "projmat");
@@ -226,23 +226,23 @@ void GenerateMaze(char *maze, int width, int height) {
 
     int x, y;
 
-    /* Initialize the maze. */
+    /* Initialise le laby */
     for(x = 0; x < width * height; x++) {
         maze[x] = 1;
     }
     maze[1 * width + 1] = 0;
 
-    /* Seed the random number generator. */
+
     srand(time(0));
 
-    /* Carve the maze. */
+    /* genere le laby */
     for(y = 1; y < height; y += 2) {
         for(x = 1; x < width; x += 2) {
             CarveMaze(maze, width, height, x, y);
         }
     }
 
-    /* Set up the entry and exit. */
+    /* ajoute entrer sortie */
     maze[0 * width + 1] = 0;
     maze[(height - 1) * width + (width - 2)] = 0;
 
@@ -471,6 +471,13 @@ static Model *createCube(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textu
                     -s2, s2*2,  s2,
                     s2 , s2*2,  s2,
 
+                    -s2, 0, -s2,
+                    s2 , 0, -s2,
+                    -s2, 0,  s2,
+                    -s2, 0,  s2,
+                    s2 , 0, -s2,
+                    s2 , 0,  s2,
+
 
                    /* -dimx, -dimy, dimz,
                     dimx, -dimy, dimz,
@@ -556,7 +563,14 @@ static Model *createCube(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textu
                     0.0f, 1.0f,
                     0.0f, 1.0f,
                     1.0f, 0.0f,
-                    0.0f, 0.0f
+                    0.0f, 0.0f,
+
+                    0.0f, 0.0f,
+                    1.0f, 0.0f,
+                    0.0f, 1.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
+                    1.0f, 1.0f,
 
                 /*    0.0f, 0.0f,
                     1.0f, 0.0f,
@@ -583,6 +597,14 @@ static Model *createCube(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textu
                     0.0f, 1.0f, 0.0f,
 
                     /* 4 normales */
+                    1.0f, 0.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+
+                    /* 4 normales */
                     0.0f, 0.0f, -1.0f,
                     0.0f, 0.0f, -1.0f,
                     0.0f, 0.0f, -1.0f,
@@ -600,20 +622,21 @@ static Model *createCube(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textu
 
                     /* 4 normales */
                     /* Normale a gere problemme de lumier les tecture de s affiche pas */
-                    0.0f, 0.0f, -1.0f,
-                    0.0f, 0.0f, -1.0f,
-                    0.0f, 0.0f, -1.0f,
-                    0.0f, 0.0f, -1.0f,
-                    0.0f, 0.0f, -1.0f,
-                    0.0f, 0.0f, -1.0f,
+                    0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f,
 
-                    /* 4 normales */
-                    -1.0f, 0.0f, 0.0f,
-                    -1.0f, 0.0f, 0.0f,
-                    -1.0f, 0.0f, 0.0f,
-                    -1.0f, 0.0f, 0.0f,
-                    -1.0f, 0.0f, 0.0f,
-                    -1.0f, 0.0f, 0.0f,
+
+
+                    0.0f, -1.0f, 0.0f,
+                    0.0f, -1.0f, 0.0f,
+                    0.0f, -1.0f, 0.0f,
+                    0.0f, -1.0f, 0.0f,
+                    0.0f, -1.0f, 0.0f,
+                    0.0f, -1.0f, 0.0f,
 
                 /*    0.0f, -1.0f, 0.0f,
                     0.0f, -1.0f, 0.0f,
@@ -656,7 +679,7 @@ static Model *createCube(GLfloat dimx, GLfloat dimy, GLfloat dimz, GLfloat textu
     newModel->scale.z = 1;
 
     newModel->drawType = GL_TRIANGLES;
-    newModel->size = 24;//36
+    newModel->size = 36;//36
 
     return newModel;
 }
@@ -880,16 +903,15 @@ static void scene(int duplicate) {
     static float r1 = 0, r2 = 0, r3 = 0;
     static float cpt=0;
 
-  /*  glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-*/
+
     /* Matrice du Model */
-    //lum_pos[0] = 10.0f * sin(M_PI * r3 / 180.0f);
+    lum_pos[0] = 10.0f * sin(M_PI * r3 / 180.0f);
     glUniform3fv(glGetUniformLocation(_program, "lum_pos"), 1, lum_pos);
 
     _skyboxModel->rotation.y = r1;
 
-    _testModel->rotation.y = r1*100;
+    _testModel->rotation.y = r1*500;
+   // _testModel->rotation.z = r1*100;
 
     _MonstreModel->position.y = sin(cpt);
 
@@ -909,8 +931,15 @@ static void scene(int duplicate) {
     displayModel(_skyboxModel, _skyboxTexture);
     displayModel(_solModel, _solTexture);
     displayModel(_MonstreModel, _MonstreTexture);
+
+    glEnable(GL_DEPTH_TEST);
+/*
+    glEnable(GL_CULL_FACE);
+*/
    // displayModel(_testModel, _testTexture);
 
+    glDepthFunc(GL_LEQUAL);
+    glDepthMask(GL_TRUE);
     //Version labyrinthe
     for(int y = 0; y <= taille_labi; y++) {
         for(int x = 0; x < taille_labi; x++) {
@@ -919,15 +948,17 @@ static void scene(int duplicate) {
                     _cubeModel[y+x]->position.z = (y*(cube*2))-Taille_map+20;
                 _cubeModel[y+x]->position.x = (x*(cube*2))-Taille_map+20;
                 _cubeModel[y+x]->position.y = -5;
-               // if(distance(_cubeModel[y+x]->position.x,_cubeModel[y+x]->position.z)<=100.0) {
+                if(distance(_cubeModel[y+x]->position.x,_cubeModel[y+x]->position.z)<=100.0) {
 
                     displayModel(_cubeModel[y + x], _cubeTexture[y + x]);
-               // }
+                }
             }
         }
     }
+/*
+    glFrontFace(GL_CW);
 
-
+    glDisable(GL_CULL_FACE);*/
     //Version foret
 /*    for(int i = 0;i<NBARBRE;i++) {
         _arbreModel[i]->rotation.y = r2;
@@ -1092,7 +1123,7 @@ _MonstreModel = createArbre(5.0f, 3.0f,5.0f, 1.0f);
 _testTexture = loadTexture("sol.jpg");
 _testModel = createCube(2.0f, 2.0f,2.0f, 1.0f);
 
-_testModel->position.z = -450;
+_testModel->position.z = -480;
 _testModel->position.x = -3;
 _testModel->position.y = 3;
 
@@ -1113,7 +1144,7 @@ _solModel->rotation.x = -95;*/
 
 
 for(int i = 0;i<NBCUBE;i++){
-_cubeTexture[i] = loadTexture("sol.jpg");
+_cubeTexture[i] = loadTexture("mur.png");
 _cubeModel[i] = createCube(cube, cube,cube, 1.0f);
 }
 
